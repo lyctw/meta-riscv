@@ -3,7 +3,7 @@ require recipes-bsp/u-boot/u-boot.inc
 LIC_FILES_CHKSUM = "file://Licenses/README;md5=5a7450c57ffe5ae63fd732446b988025"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files/ae350-ax45mp:"
-DEPENDS:append = " opensbi u-boot-tools-native python3-setuptools-native"
+DEPENDS:append = " bc-native opensbi u-boot-tools-native python3-setuptools-native"
 
 # tag: v2022.01
 SRCREV="d637294e264adfeb29f390dfc393106fd4d41b17"
