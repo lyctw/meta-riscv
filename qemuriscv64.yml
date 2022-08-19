@@ -1,0 +1,66 @@
+header:
+  version: 8
+
+distro: poky
+
+machine: qemuriscv64
+
+target:
+  - core-image-minimal
+
+repos:
+  meta-riscv:
+    path: /work/meta-riscv
+
+  poky:
+    url: https://git.yoctoproject.org/git/poky
+    refspec: master
+    layers:
+      meta:
+      meta-poky:
+      meta-yocto-bsp:
+
+  meta-openembedded:
+    url: https://git.openembedded.org/meta-openembedded
+    refspec: master
+    layers:
+      meta-oe:
+      meta-networking:
+      meta-python:
+
+bblayers_conf_header:
+  standard: |
+    POKY_BBLAYERS_CONF_VERSION = "2"
+    BBPATH = "${TOPDIR}"
+    BBFILES ?= ""
+local_conf_header:
+  standard: |
+    # rootfs for debugging
+    #IMAGE_GEN_DEBUGFS = "1"
+    #IMAGE_FSTYPES_DEBUGFS = "tar.gz"
+    DISTRO_FEATURES:append = " opengl ptest multiarch wayland pam systemd "
+
+    CONF_VERSION = "2"
+    PACKAGE_CLASSES = "package_deb"
+    SDKMACHINE = "x86_64"
+    # Use 'haveged' instead 'rng-tools' due to 'SIGSEGV' error during start 'rngd'
+    PACKAGE_EXCLUDE:append = " rng-tools"
+    IMAGE_INSTALL:append = " haveged vim htop"
+    IMAGE_FEATURES += " \
+        ssh-server-dropbear \
+        debug-tweaks \
+        package-management \
+        debug-tweaks \
+        tools-debug \
+        dbg-pkgs \
+    "
+  diskmon: |
+    BB_DISKMON_DIRS = "\
+        STOPTASKS,${TMPDIR},1G,100K \
+        STOPTASKS,${DL_DIR},1G,100K \
+        STOPTASKS,${SSTATE_DIR},1G,100K \
+        STOPTASKS,/tmp,100M,100K \
+        HALT,${TMPDIR},100M,1K \
+        HALT,${DL_DIR},100M,1K \
+        HALT,${SSTATE_DIR},100M,1K \
+        HALT,/tmp,10M,1K"
