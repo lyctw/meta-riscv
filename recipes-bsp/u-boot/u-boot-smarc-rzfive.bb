@@ -11,6 +11,8 @@ BRANCH="v2021.12/rzf-smarc"
 SRC_URI = " \
     git://github.com/renesas-rz/renesas-u-boot-cip.git;protocol=https;branch=${BRANCH} \
     file://0001-riscv-fix-build-with-binutils-2.38.patch \
+    file://0002-spl-opensbi-convert-scratch-options-to-config.patch \
+    file://opensbi-options.cfg \
     file://tftp-mmc-boot.txt \
     file://uEnv-rzfive.txt \
     file://BootLoaderHeader.bin \
