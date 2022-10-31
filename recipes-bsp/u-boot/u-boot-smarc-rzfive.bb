@@ -12,6 +12,8 @@ SRC_URI = " \
     git://github.com/renesas-rz/renesas-u-boot-cip.git;protocol=https;branch=${BRANCH} \
     file://0001-riscv-fix-build-with-binutils-2.38.patch \
     file://0002-spl-opensbi-convert-scratch-options-to-config.patch \
+    file://0003-riscv-dts-Update-PLICSW-and-PLMT-for-OpenSBI.patch \
+    file://0004-r9a07g043f.dtsi-resize-PLMT-region.patch \
     file://opensbi-options.cfg \
     file://tftp-mmc-boot.txt \
     file://uEnv-rzfive.txt \
