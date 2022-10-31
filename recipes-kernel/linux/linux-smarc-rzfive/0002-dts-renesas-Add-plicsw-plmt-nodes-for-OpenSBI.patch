@@ -1,0 +1,39 @@
+From fce2739ab85f12f2c7694acc910dfdbfed5ec6aa Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Sun, 30 Oct 2022 19:31:23 +0800
+Subject: [PATCH] dts: renesas: Add plicsw & plmt nodes for OpenSBI
+
+---
+ arch/riscv/boot/dts/renesas/r9a07g043f.dtsi | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/arch/riscv/boot/dts/renesas/r9a07g043f.dtsi b/arch/riscv/boot/dts/renesas/r9a07g043f.dtsi
+index 2d926e7d7e9c..03eb09557847 100755
+--- a/arch/riscv/boot/dts/renesas/r9a07g043f.dtsi
++++ b/arch/riscv/boot/dts/renesas/r9a07g043f.dtsi
+@@ -85,6 +85,22 @@ soc: soc {
+ 		#size-cells = <2>;
+ 		ranges;
+ 
++		plicsw: interrupt-controller@13000000 {
++			compatible = "andestech,plicsw";
++			reg = <0x00000000 0x13000000 0x00000000 0x00400000>;
++			interrupts-extended = <0x13 0x03>;
++			interrupt-controller;
++			#address-cells = <2>;
++			#interrupt-cells = <2>;
++			riscv,ndev = <1>;
++		};
++
++		plmt: plmt0@110c0000 {
++			compatible = "andestech,plmt0";
++			reg = <0x00 0x110c0000 0x00 0x100000>;
++			interrupts-extended = <0x13 0x07>;
++		};
++
+ 		mtu3: timer@10001200 {
+ 			compatible = "renesas,mtu3";
+ 			reg = <0 0x10001200 0 0xB00>;
+-- 
+2.34.1
+

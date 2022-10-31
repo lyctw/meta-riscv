@@ -13,6 +13,7 @@ FORK ?= "renesas-rz"
 SRC_URI = " \
        git://github.com/${FORK}/rz_linux-cip.git;protocol=https;branch=${BRANCH} \
        file://0001-riscv-fix-build-with-binutils-2.38.patch \
+       file://0002-dts-renesas-Add-plicsw-plmt-nodes-for-OpenSBI.patch \
        "
 
 LINUX_VERSION ?= "5.10.x"
