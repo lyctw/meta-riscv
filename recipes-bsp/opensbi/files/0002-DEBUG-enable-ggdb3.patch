@@ -1,0 +1,22 @@
+From f955d9b2b95d77d0264eeed9052014cc532606a8 Mon Sep 17 00:00:00 2001
+From: Kas User <kas@example.com>
+Date: Sat, 17 Jun 2023 05:44:06 +0000
+Subject: [PATCH] DEBUG enable ggdb3
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index a26a39b..c65532b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -333,7 +333,7 @@ GENFLAGS	+=	$(firmware-genflags-y)
+ 
+ CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing
+ ifneq ($(DEBUG),)
+-CFLAGS		+=	-O0
++CFLAGS		+=	-O0 -ggdb3
+ else
+ CFLAGS		+=	-O2
+ endif

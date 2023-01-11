@@ -6,20 +6,19 @@ SUMMARY = "Renesas SMARC RZ/Five dev kernel recipe"
 LIC_FILES_CHKSUM = "file://${S}/COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
 KERNEL_VERSION_SANITY_SKIP="1"
 
-BRANCH = "rzfive-5.10-cip1"
-SRCREV="48de75691cc8f3c5fd75a784c7c42110752e268e"
-FORK ?= "renesas-rz"
+BRANCH = "v6.3_rzfive-yocto_v2"
+SRCREV="1bc4110163f0d978dca44e6f292cc6b28ee9fbd0"
+FORK ?= "lyctw"
 
-SRC_URI = " \
-       git://github.com/${FORK}/rz_linux-cip.git;protocol=https;branch=${BRANCH} \
-       file://0001-riscv-fix-build-with-binutils-2.38.patch \
-       file://0002-dts-renesas-Add-plicsw-plmt-nodes-for-OpenSBI.patch \
-       "
+SRC_URI = "git://github.com/${FORK}/linux.git;protocol=https;branch=${BRANCH} \
+           file://0001-dts-renesas-Add-plicsw-plmt-nodes-for-OpenSBI.patch \
+           file://0001-dts-renesas-Add-global-pool-as-a-reserved-memory.patch \
+           "
 
-LINUX_VERSION ?= "5.10.x"
+LINUX_VERSION ?= "6.3.x"
 LINUX_VERSION_EXTENSION:append:ae350-ax45mp = "-rzfive"
 
-KBUILD_DEFCONFIG = "renesas_defconfig"
+KBUILD_DEFCONFIG = "rzf_defconfig"
 
 do_deploy:append() {
 	for dtbf in ${KERNEL_DEVICETREE}; do

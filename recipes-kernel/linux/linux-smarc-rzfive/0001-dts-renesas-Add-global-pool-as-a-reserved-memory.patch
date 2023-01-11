@@ -1,0 +1,32 @@
+From 0de4bcefe631a7eac5d4c284b150f51b96515164 Mon Sep 17 00:00:00 2001
+From: Kas User <kas@example.com>
+Date: Sun, 18 Jun 2023 10:11:48 +0000
+Subject: [PATCH] dts: renesas: Add global pool as a reserved memory
+
+---
+ arch/riscv/boot/dts/renesas/r9a07g043f01-smarc.dts | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/arch/riscv/boot/dts/renesas/r9a07g043f01-smarc.dts b/arch/riscv/boot/dts/renesas/r9a07g043f01-smarc.dts
+index 2aa8515451d3..ca3062162716 100644
+--- a/arch/riscv/boot/dts/renesas/r9a07g043f01-smarc.dts
++++ b/arch/riscv/boot/dts/renesas/r9a07g043f01-smarc.dts
+@@ -23,5 +23,17 @@
+ 
+ / {
+ 	model = "Renesas SMARC EVK based on r9a07g043f01";
+-	compatible = "renesas,smarc-evk", "renesas,r9a07g043f01", "renesas,r9a07g043";
++	compatible = "renesas,smarc-evk", "renesas,r9a07g043f01", "renesas,r9a07g043", "renesas,rzf";
++        reserved-memory {
++                #address-cells = <0x00000002>;
++                #size-cells = <0x00000002>;         
++                ranges;                              
++                pma_resv0@58000000 {
++                        reg = <0x00000000 0x58000000 0x00000000 0x08000000>;
++                        linux,dma-default;
++                        no-map;
++                        compatible = "shared-dma-pool";
++                };
++        };
++
+ };

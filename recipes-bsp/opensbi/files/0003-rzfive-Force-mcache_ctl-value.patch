@@ -1,0 +1,37 @@
+From 7385ff34eb780452967d368815c99ab9a161e433 Mon Sep 17 00:00:00 2001
+From: Kas User <kas@example.com>
+Date: Mon, 22 May 2023 06:47:39 +0000
+Subject: [PATCH] rzfive: Force mcache_ctl value
+
+CCTL_SUEN should be enabled so ax45mp_iocp_sw_workaround() can return
+true.
+
+Signed-off-by: Kas User <kas@example.com>
+---
+ platform/generic/renesas/rzfive/rzfive.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+index 0ed5028..8c49ac9 100644
+--- a/platform/generic/renesas/rzfive/rzfive.c
++++ b/platform/generic/renesas/rzfive/rzfive.c
+@@ -6,6 +6,8 @@
+ 
+ #include <andes/andes45_pma.h>
+ #include <andes/andes_sbi.h>
++#include <andes/andes45.h>
++#include <sbi/riscv_asm.h>
+ #include <platform_override.h>
+ #include <sbi/sbi_domain.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+@@ -31,6 +33,7 @@ static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *mat
+ 
+ int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
+ {
++	csr_write(CSR_MCACHE_CTL, 0x183f03ul);
+ 	/*
+ 	 * Renesas RZ/Five RISC-V SoC has Instruction local memory and
+ 	 * Data local memory (ILM & DLM) mapped between region 0x30000
+-- 
+2.30.2
+
