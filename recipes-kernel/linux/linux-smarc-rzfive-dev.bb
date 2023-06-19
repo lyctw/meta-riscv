@@ -13,6 +13,7 @@ FORK ?= "lyctw"
 SRC_URI = "git://github.com/${FORK}/linux.git;protocol=https;branch=${BRANCH} \
            file://0001-dts-renesas-Add-plicsw-plmt-nodes-for-OpenSBI.patch \
            file://0001-dts-renesas-Add-global-pool-as-a-reserved-memory.patch \
+           file://set-mmap-min-addr.cfg \
            "
 
 LINUX_VERSION ?= "6.3.x"
