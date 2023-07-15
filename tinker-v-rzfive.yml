@@ -3,7 +3,7 @@ header:
 
 distro: poky
 
-machine: smarc-rzfive
+machine: tinker-v
 
 target:
   - core-image-minimal

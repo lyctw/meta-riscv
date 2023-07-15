@@ -1,12 +1,12 @@
 From 7385ff34eb780452967d368815c99ab9a161e433 Mon Sep 17 00:00:00 2001
-From: Kas User <kas@example.com>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Mon, 22 May 2023 06:47:39 +0000
 Subject: [PATCH] rzfive: Force mcache_ctl value
 
 CCTL_SUEN should be enabled so ax45mp_iocp_sw_workaround() can return
 true.
 
-Signed-off-by: Kas User <kas@example.com>
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 ---
  platform/generic/renesas/rzfive/rzfive.c | 3 +++
  1 file changed, 3 insertions(+)

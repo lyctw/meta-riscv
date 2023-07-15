@@ -3,25 +3,27 @@ require recipes-bsp/u-boot/u-boot.inc
 LIC_FILES_CHKSUM = "file://Licenses/README;md5=5a7450c57ffe5ae63fd732446b988025"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
-DEPENDS:append = " bc dtc-native opensbi-smarc-rzfive u-boot-tools-native"
+DEPENDS:append = " bc dtc-native opensbi-tinker-v-rzfive u-boot-tools-native"
 
-SRCREV="ea6d1659b79402a6137e7cda9620bfe956801780"
-BRANCH="v2021.12/rzf-smarc"
+SRCREV="accbe020795de6850aca6b1a12fae4efff897763"
+BRANCH="linux5.10-rzfive"
 
 SRC_URI = " \
-    git://github.com/renesas-rz/renesas-u-boot-cip.git;protocol=https;branch=${BRANCH} \
-    file://0001-riscv-fix-build-with-binutils-2.38.patch \
-    file://0002-spl-opensbi-convert-scratch-options-to-config.patch \
-    file://0003-riscv-dts-Update-PLICSW-and-PLMT-for-OpenSBI.patch \
-    file://0004-r9a07g043f.dtsi-resize-PLMT-region.patch \
-    file://opensbi-options.cfg \
+    git://github.com/TinkerBoard/renesas-renesas-u-boot-cip.git;protocol=https;branch=${BRANCH} \
+    file://BootLoaderHeader.bin \
     file://tftp-mmc-boot.txt \
     file://uEnv-rzfive.txt \
-    file://BootLoaderHeader.bin \
     "
 
-# UBOOT_CONFIG_rzfive-dev = "rzf-dev_ddr4_defconfig"
-UBOOT_CONFIG_smarc-rzfive = "smarc-rzf_defconfig"
+# file://0001-riscv-fix-build-with-binutils-2.38.patch
+# file://0002-spl-opensbi-convert-scratch-options-to-config.patch
+# file://0003-riscv-dts-Update-PLICSW-and-PLMT-for-OpenSBI.patch
+# file://0004-r9a07g043f.dtsi-resize-PLMT-region.patch
+# file://opensbi-options.cfg
+# file://tftp-mmc-boot.txt
+# file://uEnv-rzfive.txt
+
+UBOOT_CONFIG_tinker-v-rzfive = "tinker_v_defconfig"
 
 do_compile:prepend() {
     export OPENSBI=${DEPLOY_DIR_IMAGE}/fw_dynamic.bin
@@ -64,6 +66,6 @@ do_deploy:append() {
     install -m 755 ${B}/fit-${MACHINE}.srec ${DEPLOY_DIR_IMAGE}
 }
 
-do_compile[depends] += "opensbi-smarc-rzfive:do_deploy"
+do_compile[depends] += "opensbi-tinker-v-rzfive:do_deploy"
 
-COMPATIBLE_MACHINE = "(smarc-rzfive)"
+COMPATIBLE_MACHINE = "(tinker-v-rzfive)"

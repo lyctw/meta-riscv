@@ -1,7 +1,7 @@
 # require recipes-kernel/linux/linux-renesas.inc
 require linux-mainline-common.inc
-FILESEXTRAPATHS:prepend = "${FILE_DIRNAME}/linux-smarc-rzfive:"
-SUMMARY = "Renesas SMARC RZ/Five dev kernel recipe"
+FILESEXTRAPATHS:prepend = "${FILE_DIRNAME}/linux-tinker-v-rzfive:"
+SUMMARY = "ASUS Tinker-V RZ/Five dev kernel recipe"
 
 LIC_FILES_CHKSUM = "file://${S}/COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
 KERNEL_VERSION_SANITY_SKIP="1"
@@ -17,7 +17,7 @@ SRC_URI = "git://github.com/${FORK}/linux.git;protocol=https;branch=${BRANCH} \
            "
 
 LINUX_VERSION ?= "6.3.x"
-LINUX_VERSION_EXTENSION:append:ae350-ax45mp = "-rzfive"
+LINUX_VERSION_EXTENSION:append:tinker-v-rzfive = "-rzfive"
 
 KBUILD_DEFCONFIG = "rzf_defconfig"
 
@@ -32,4 +32,4 @@ do_deploy:append() {
 	done
 }
 
-COMPATIBLE_MACHINE = "(smarc-rzfive)"
+COMPATIBLE_MACHINE = "(tinker-v-rzfive)"
