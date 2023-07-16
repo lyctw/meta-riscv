@@ -3,7 +3,7 @@ require recipes-bsp/u-boot/u-boot.inc
 LIC_FILES_CHKSUM = "file://Licenses/README;md5=5a7450c57ffe5ae63fd732446b988025"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
-DEPENDS:append = " bc dtc-native opensbi-tinker-v-rzfive u-boot-tools-native"
+DEPENDS:append = " bc dtc-native u-boot-tools-native"
 
 SRCREV="accbe020795de6850aca6b1a12fae4efff897763"
 BRANCH="linux5.10-rzfive"
@@ -38,6 +38,6 @@ do_deploy:append() {
     install -m 755 ${B}/fit-${MACHINE}.srec ${DEPLOY_DIR_IMAGE}
 }
 
-do_compile[depends] += "opensbi-tinker-v-rzfive:do_deploy"
+do_compile[depends] += "opensbi:do_deploy"
 
 COMPATIBLE_MACHINE = "(tinker-v-rzfive)"
