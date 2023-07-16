@@ -1,5 +1,5 @@
 From f96f774a25a857bc74309c308e5dae4fc91dc861 Mon Sep 17 00:00:00 2001
-From: Kas User <kas@example.com>
+From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 21 May 2023 07:45:38 +0000
 Subject: [PATCH] dts: renesas: Add plicsw & plmt nodes for OpenSBI
 
@@ -38,3 +38,6 @@ index b0796015e36b..d23aee504bdf 100644
  	l2cache: cache-controller@13400000 {
  		compatible = "andestech,ax45mp-cache", "cache";
  		reg = <0x0 0x13400000 0x0 0x100000>;
+-- 
+2.34.1
+

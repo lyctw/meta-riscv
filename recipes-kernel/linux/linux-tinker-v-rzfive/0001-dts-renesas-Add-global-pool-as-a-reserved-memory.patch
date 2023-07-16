@@ -3,6 +3,7 @@ From: Kas User <kas@example.com>
 Date: Sun, 18 Jun 2023 10:11:48 +0000
 Subject: [PATCH] dts: renesas: Add global pool as a reserved memory
 
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 ---
  arch/riscv/boot/dts/renesas/r9a07g043f01-smarc.dts | 14 +++++++++++++-
  1 file changed, 13 insertions(+), 1 deletion(-)
@@ -30,3 +31,6 @@ index 2aa8515451d3..ca3062162716 100644
 +        };
 +
  };
+-- 
+2.34.1
+
