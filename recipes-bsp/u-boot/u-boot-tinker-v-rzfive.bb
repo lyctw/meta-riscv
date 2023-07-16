@@ -13,8 +13,7 @@ SRC_URI = "git://github.com/TinkerBoard/renesas-renesas-u-boot-cip.git;protocol=
            file://0001-spl-opensbi-convert-scratch-options-to-config.patch \
            file://0002-riscv-Update-PLMT-and-PLICSW-compatible-string.patch \
            file://opensbi-options.cfg \
-           file://tftp-mmc-boot.txt \
-           file://uEnv-rzfive.txt \
+           file://boot.cfg \
            "
 
 UBOOT_CONFIG_tinker-v-rzfive = "tinker_v_defconfig"
@@ -34,28 +33,7 @@ do_compile:append() {
     objcopy -I binary -O srec --adjust-vma=0 --srec-forceS3 ${B}/u-boot.itb ${B}/fit-${MACHINE}.srec
 }
 
-# Overwrite this for your server
-TFTP_SERVER_IP ?= "127.0.0.1"
-
-do_configure:prepend() {
-    if [ -f "${WORKDIR}/tftp-mmc-boot.txt" ]; then
-        sed -i -e 's,@SERVERIP@,${TFTP_SERVER_IP},g' ${WORKDIR}/tftp-mmc-boot.txt
-        mkimage -A riscv -O linux -T script -C none -n "U-Boot boot script" \
-            -d ${WORKDIR}/tftp-mmc-boot.txt ${WORKDIR}/boot.scr.uimg
-    fi
-}
-
 do_deploy:append() {
-    if [ -f "${WORKDIR}/boot.scr.uimg" ]; then
-        install -d ${DEPLOY_DIR_IMAGE}
-        install -m 755 ${WORKDIR}/boot.scr.uimg ${DEPLOYDIR}
-    fi
-            
-    if [ -f "${WORKDIR}/uEnv-rzfive.txt" ]; then
-        install -d ${DEPLOY_DIR_IMAGE}
-        install -m 644 ${WORKDIR}/uEnv-rzfive.txt ${DEPLOYDIR}/uEnv.txt
-    fi
-
     install -m 755 ${B}/spl-${MACHINE}.srec ${DEPLOY_DIR_IMAGE}
     install -m 755 ${B}/fit-${MACHINE}.srec ${DEPLOY_DIR_IMAGE}
 }
