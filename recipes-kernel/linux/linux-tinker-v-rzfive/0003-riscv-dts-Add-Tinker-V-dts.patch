@@ -1,7 +1,10 @@
-From b0e140e54f19b6a4c12d3dfca47c23a549f37509 Mon Sep 17 00:00:00 2001
-From: Yu Chien Peter Lin <peterlin@andestech.com>
+From 7a4d53fd47a54e8aeadb1d351feff4b7537e786e Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin
 Date: Sun, 16 Jul 2023 06:24:47 +0000
-Subject: [PATCH 3/3] riscv: dts: Add Tinker-V dts
+Subject: [PATCH] riscv: dts: Add Tinker-V dts
+
+Note: Tinker V SDK needs add linux,dma-default property in
+reserved-memory node.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 ---
@@ -25,7 +28,7 @@ new file mode 100644
 index 000000000000..a0bcdbfcf4ff
 --- /dev/null
 +++ b/arch/riscv/boot/dts/renesas/r9a07g043f01-tinker-v.dts
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,46 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * Device Tree Source for the RZ/Five
