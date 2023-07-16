@@ -1,0 +1,80 @@
+From a47ac3d28e9c5764d80bfc22608e311e7add6498 Mon Sep 17 00:00:00 2001
+From: Kas User <kas@example.com>
+Date: Sun, 16 Jul 2023 04:57:10 +0000
+Subject: [PATCH] riscv: Update PLMT and PLICSW compatible string
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The mainline OpenSBI uses andestech namespace for PLMT and PLICSW.
+
+This patch also resizes PLMT region as per RZ/Five datasheet:
+H’0_110C_0000 - H’0_110C_FFFF (64 Kbytes) Machine Timer
+
+Upstream-Status: Pending
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+---
+ arch/riscv/dts/r9a07g043f.dtsi   | 10 +++++-----
+ arch/riscv/lib/andes_plic.c      |  2 +-
+ drivers/timer/andes_plmt_timer.c |  2 +-
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/arch/riscv/dts/r9a07g043f.dtsi b/arch/riscv/dts/r9a07g043f.dtsi
+index 86cb0ef9d9..eabffa8ad1 100644
+--- a/arch/riscv/dts/r9a07g043f.dtsi
++++ b/arch/riscv/dts/r9a07g043f.dtsi
+@@ -109,9 +109,9 @@
+ 			interrupts-extended = <&CPU0_intc 11 &CPU0_intc 9>;
+ 		};
+ 
+-		plic1: interrupt-controller@13000000 {
++		plicsw: interrupt-controller@13000000 {
+ 			u-boot,dm-spl;
+-			compatible = "riscv,plic1";
++			compatible = "andestech,plicsw";
+ 			#address-cells = <2>;
+ 			#interrupt-cells = <2>;
+ 			interrupt-controller;
+@@ -119,10 +119,10 @@
+ 			interrupts-extended = <&CPU0_intc 3>;
+ 		};
+ 
+-		plmt0@110c0000 {
++		plmt: plmt0@110c0000 {
+ 			u-boot,dm-spl;
+-			compatible = "riscv,plmt0";
+-			reg = <0x0 0x110c0000 0x0 0x100000>;
++			compatible = "andestech,plmt0";
++			reg = <0x0 0x110c0000 0x0 0x10000>;
+ 			interrupts-extended = <&CPU0_intc 7>;
+ 		};
+ 
+diff --git a/arch/riscv/lib/andes_plic.c b/arch/riscv/lib/andes_plic.c
+index 5e113ee8c9..97e2c96a1d 100644
+--- a/arch/riscv/lib/andes_plic.c
++++ b/arch/riscv/lib/andes_plic.c
+@@ -115,7 +115,7 @@ int riscv_get_ipi(int hart, int *pending)
+ }
+ 
+ static const struct udevice_id andes_plic_ids[] = {
+-	{ .compatible = "riscv,plic1", .data = RISCV_SYSCON_PLIC },
++	{ .compatible = "andestech,plicsw", .data = RISCV_SYSCON_PLIC },
+ 	{ }
+ };
+ 
+diff --git a/drivers/timer/andes_plmt_timer.c b/drivers/timer/andes_plmt_timer.c
+index a3797b22c7..42dd4b6231 100644
+--- a/drivers/timer/andes_plmt_timer.c
++++ b/drivers/timer/andes_plmt_timer.c
+@@ -56,7 +56,7 @@ static int andes_plmt_probe(struct udevice *dev)
+ }
+ 
+ static const struct udevice_id andes_plmt_ids[] = {
+-	{ .compatible = "riscv,plmt0" },
++	{ .compatible = "andestech,plmt0" },
+ 	{ }
+ };
+ 
+-- 
+2.30.2
+
