@@ -11,9 +11,7 @@ SRCREV="1bc4110163f0d978dca44e6f292cc6b28ee9fbd0"
 FORK ?= "lyctw"
 
 SRC_URI = "git://github.com/${FORK}/linux.git;protocol=https;branch=${BRANCH} \
-           file://0001-dts-renesas-Add-global-pool-as-a-reserved-memory.patch \
-           file://0002-dts-renesas-Add-plicsw-plmt-nodes-for-OpenSBI.patch \
-           file://0003-riscv-dts-Add-Tinker-V-dts.patch \
+           file://0001-riscv-dts-Add-Tinker-V-dts.patch \
            file://set-mmap-min-addr.cfg \
            "
 
