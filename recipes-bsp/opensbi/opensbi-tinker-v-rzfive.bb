@@ -19,8 +19,6 @@ SRC_URI = "git://github.com/riscv-software-src/opensbi.git;protocol=https;branch
            file://0001-lib-serial-Add-compatible-string-for-renesas_scif.patch \
            file://0002-platform-rzfive-Add-platform-compatible-string.patch \
            file://0003-rzfive-Force-mcache_ctl-value.patch \
-           file://0001-print-mcache_ctl-at-final_init.patch \
-           file://0002-DEBUG-enable-ggdb3.patch \
            "
 
 S = "${WORKDIR}/git"
