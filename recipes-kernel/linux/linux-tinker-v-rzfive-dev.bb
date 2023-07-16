@@ -6,7 +6,7 @@ SUMMARY = "ASUS Tinker-V RZ/Five dev kernel recipe"
 LIC_FILES_CHKSUM = "file://${S}/COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
 KERNEL_VERSION_SANITY_SKIP="1"
 
-BRANCH = "v6.3_rzfive-yocto_v2"
+BRANCH = "v6.4_rzfive-yocto_v2"
 SRCREV="1bc4110163f0d978dca44e6f292cc6b28ee9fbd0"
 FORK ?= "lyctw"
 
@@ -17,7 +17,7 @@ SRC_URI = "git://github.com/${FORK}/linux.git;protocol=https;branch=${BRANCH} \
            "
 
 LINUX_VERSION ?= "6.3.x"
-LINUX_VERSION_EXTENSION:append:tinker-v-rzfive = "-rzfive"
+#LINUX_VERSION_EXTENSION:append:tinker-v-rzfive = "-rzfive"
 
 KBUILD_DEFCONFIG = "rzf_defconfig"
 

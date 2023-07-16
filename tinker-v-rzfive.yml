@@ -3,7 +3,7 @@ header:
 
 distro: poky
 
-machine: tinker-v
+machine: tinker-v-rzfive
 
 target:
   - core-image-minimal

@@ -6,15 +6,15 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 FLASH_WRITER_URL = "git://github.com/renesas-rz/rzg2_flash_writer"
 BRANCH = "rz_five"
-SRCREV = "8709b9f798f371e1c03f5bdf55c92353ee6a8a26"
+SRCREV = "68cb0875cfcc5c5295ad74e6b97798ba5fad8126"
 
 SRC_URI = " \
 	${FLASH_WRITER_URL};protocol=https;branch=${BRANCH} \
 	file://0001-makefile-use-default-build-setting.patch \
+	file://0002-flashwriter-ddr-support-Tinker-V.patch \
 "
 
 inherit deploy
-#require include/provisioning.inc
 
 S = "${WORKDIR}/git"
 
@@ -23,6 +23,8 @@ do_compile() {
                 BOARD="RZFIVE_SMARC";
         elif [ "${MACHINE}" = "rzfive-dev" ]; then
                 BOARD="RZFIVE_13MMSQ_DEV";
+        elif [ "${MACHINE}" = "tinker-v-rzfive" ]; then
+                BOARD="TINKER_V";
         fi
         cd ${S}
 

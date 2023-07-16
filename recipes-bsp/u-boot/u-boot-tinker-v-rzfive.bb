@@ -8,20 +8,14 @@ DEPENDS:append = " bc dtc-native opensbi-tinker-v-rzfive u-boot-tools-native"
 SRCREV="accbe020795de6850aca6b1a12fae4efff897763"
 BRANCH="linux5.10-rzfive"
 
-SRC_URI = " \
-    git://github.com/TinkerBoard/renesas-renesas-u-boot-cip.git;protocol=https;branch=${BRANCH} \
-    file://BootLoaderHeader.bin \
-    file://tftp-mmc-boot.txt \
-    file://uEnv-rzfive.txt \
-    "
-
-# file://0001-riscv-fix-build-with-binutils-2.38.patch
-# file://0002-spl-opensbi-convert-scratch-options-to-config.patch
-# file://0003-riscv-dts-Update-PLICSW-and-PLMT-for-OpenSBI.patch
-# file://0004-r9a07g043f.dtsi-resize-PLMT-region.patch
-# file://opensbi-options.cfg
-# file://tftp-mmc-boot.txt
-# file://uEnv-rzfive.txt
+SRC_URI = "git://github.com/TinkerBoard/renesas-renesas-u-boot-cip.git;protocol=https;branch=${BRANCH} \
+           file://BootLoaderHeader.bin \
+           file://0001-spl-opensbi-convert-scratch-options-to-config.patch \
+           file://0002-riscv-Update-PLMT-and-PLICSW-compatible-string.patch \
+           file://opensbi-options.cfg \
+           file://tftp-mmc-boot.txt \
+           file://uEnv-rzfive.txt \
+           "
 
 UBOOT_CONFIG_tinker-v-rzfive = "tinker_v_defconfig"
 

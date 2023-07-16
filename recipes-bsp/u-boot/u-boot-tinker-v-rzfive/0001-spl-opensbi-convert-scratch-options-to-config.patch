@@ -1,4 +1,4 @@
-From fff9a49908aaaf4a443160d2bdcb1c3ff17e2e5f Mon Sep 17 00:00:00 2001
+From accc17c95dda7ab20616ed02386c8a55899f27f7 Mon Sep 17 00:00:00 2001
 From: Nikita Shubin <n.shubin@yadro.com>
 Date: Wed, 10 Aug 2022 17:06:50 +0800
 Subject: [PATCH] spl: opensbi: convert scratch options to config
@@ -24,10 +24,10 @@ Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
  2 files changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/common/spl/Kconfig b/common/spl/Kconfig
-index 50ff113cab..ddab5650e6 100644
+index 29a46c4787..e9e0f58fbd 100644
 --- a/common/spl/Kconfig
 +++ b/common/spl/Kconfig
-@@ -1339,6 +1339,14 @@ config SPL_OPENSBI_LOAD_ADDR
+@@ -1294,6 +1294,14 @@ config SPL_OPENSBI_LOAD_ADDR
  	help
  	  Load address of the OpenSBI binary.
  
@@ -55,6 +55,3 @@ index 1c0abf8553..1f76f7fa1b 100644
  	opensbi_info.boot_hart = gd->arch.boot_hart;
  
  	opensbi_entry = (void (*)(ulong, ulong, ulong))spl_image->entry_point;
--- 
-2.34.1
-
