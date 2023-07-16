@@ -3,7 +3,7 @@ From: Yu Chien Peter Lin
 Date: Sun, 16 Jul 2023 06:24:47 +0000
 Subject: [PATCH] riscv: dts: Add Tinker-V dts
 
-Note: Tinker V SDK needs add linux,dma-default property in
+Note: Tinker V SDK needs adding linux,dma-default property in
 reserved-memory node.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
