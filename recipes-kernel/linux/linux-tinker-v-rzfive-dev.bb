@@ -12,6 +12,7 @@ FORK ?= "prabhakarlad"
 
 SRC_URI = "git://github.com/${FORK}/linux.git;protocol=https;branch=${BRANCH} \
            file://0001-riscv-dts-Add-Tinker-V-dts.patch \
+           file://set-mmap-min-addr.cfg \
            "
 
 LINUX_VERSION ?= "6.4.0"
