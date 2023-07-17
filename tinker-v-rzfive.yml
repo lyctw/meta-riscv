@@ -41,7 +41,9 @@ local_conf_header:
     # Use 'haveged' instead 'rng-tools' due to 'SIGSEGV' error during start 'rngd'
     PACKAGE_EXCLUDE:append = " rng-tools"
     IMAGE_INSTALL:append = " haveged"
-    IMAGE_INSTALL:append = " packagegroup-core-buildessential file"
+    IMAGE_INSTALL:append = " packagegroup-core-buildessential file devmem2 dtc htop vim"
+    IMAGE_INSTALL:append = " glibc-staticdev"
+    EXTRA_IMAGE_FEATURES = "tools-sdk tools-debug"
     IMAGE_FEATURES += " \
         ssh-server-openssh \
         debug-tweaks \
