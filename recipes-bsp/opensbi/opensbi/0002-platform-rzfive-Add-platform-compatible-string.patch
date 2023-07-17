@@ -1,0 +1,37 @@
+From a14bb61e3076666fabeccff40a2efba908056e8c Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Sun, 21 May 2023 09:36:53 +0000
+Subject: [PATCH] platform: rzfive: Add platform compatible string
+
+The platform compatiable string of U-Boot is "renesas,rzf",
+add it to match table, OpenSBI can thus correctly setting up
+with platform overrides.
+
+  / {
+          compatible = "renesas,rzf";
+          #address-cells = <0x00000002>;
+          #size-cells = <0x00000002>;
+          model = "smarc-rzf";
+  ...
+
+Upstream-Status: Pending
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+---
+ platform/generic/renesas/rzfive/rzfive.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+index a69797b..0ed5028 100644
+--- a/platform/generic/renesas/rzfive/rzfive.c
++++ b/platform/generic/renesas/rzfive/rzfive.c
+@@ -49,6 +49,7 @@ int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
+ 
+ static const struct fdt_match renesas_rzfive_match[] = {
+ 	{ .compatible = "renesas,r9a07g043f01" },
++	{ .compatible = "renesas,rzf" },
+ 	{ /* sentinel */ }
+ };
+ 
+-- 
+2.30.2
+

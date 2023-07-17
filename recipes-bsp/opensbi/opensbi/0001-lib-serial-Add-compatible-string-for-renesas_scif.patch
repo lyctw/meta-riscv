@@ -1,0 +1,42 @@
+From 381675fac9a0c6a0907e58c23b2be45a58a201cf Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Sun, 21 May 2023 08:50:46 +0000
+Subject: [PATCH] lib: serial: Add compatible string for renesas_scif
+
+OpenSBI failed to initialze UART due to inconsistency of compatible
+string using by U-Boot:
+
+  serial@1004b800 {
+          u-boot,dm-spl;
+          compatible = "renesas,scif-r9a07g043f", "renesas,scif";
+          reg = <0x00000000 0x1004b800 0x00000000 0x00000400>;
+          clocks = <0x00000006 0x00000001 0x0000000a>;
+          resets = <0x00000006 0x0000000a>;
+          power-domains = <0x00000006>;
+          status = "okay";
+          clock = <0x05f5e100>;
+          phandle = <0x00000011>;
+  };
+
+This patch will be removed once U-Boot device tree is updated to the latest
+one.
+
+Upstream-Status: Inappropriate [enable feature]
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+---
+ lib/utils/serial/fdt_serial_renesas_scif.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lib/utils/serial/fdt_serial_renesas_scif.c b/lib/utils/serial/fdt_serial_renesas_scif.c
+index c331ca1..060fe2a 100644
+--- a/lib/utils/serial/fdt_serial_renesas_scif.c
++++ b/lib/utils/serial/fdt_serial_renesas_scif.c
+@@ -22,6 +22,8 @@ static int serial_renesas_scif_init(void *fdt, int nodeoff,
+ 
+ static const struct fdt_match serial_renesas_scif_match[] = {
+ 	{ .compatible = "renesas,scif-r9a07g043" },
++	{ .compatible = "renesas,scif-r9a07g043f" },
++	{ .compatible = "renesas,scif" },
+ 	{ /* sentinel */ }
+ };
+ 
