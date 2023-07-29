@@ -4,7 +4,7 @@ SUMMARY = "BeagleV-Ahead (TH1520) dev kernel recipe"
 LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
 KERNEL_VERSION_SANITY_SKIP = "1"
 
-SRCREV ?= "c72c2c9d4f8334f233973339f517f45e24d5e8b5"
+SRCREV ?= "bc0be96429149c7846133d1daa50ccba8e1458d2"
 BRANCH:beaglev-ahead-th1520 = "v6.5-rc2_bva"
 FORK ?= "lyctw"
 SRC_URI = "git://github.com/${FORK}/linux.git;protocol=https;branch=${BRANCH} \
