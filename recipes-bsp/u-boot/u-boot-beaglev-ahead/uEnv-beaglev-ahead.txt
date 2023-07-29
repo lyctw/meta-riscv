@@ -1,0 +1,4 @@
+bootargs=root=/dev/ram0 ro console=ttyS0,115200 earlycon=sbi clk_ignore_unused net.ifnames=0
+bootcmd_load_f=load ${devtype} ${devnum}:${distro_bootpart} ${ramdisk_addr_r} fitImage
+bootcmd_run=bootm ${ramdisk_addr_r} - ${fdtcontroladdr}
+bootcmd=run bootcmd_load_f; run bootcmd_run
