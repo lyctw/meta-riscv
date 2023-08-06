@@ -1,0 +1,25 @@
+From 9a67116ad3d4676c98f28c43a54e66e647a2fe6f Mon Sep 17 00:00:00 2001
+From: Han Gao <gaohan@iscas.ac.cn>
+Date: Wed, 10 May 2023 02:25:53 +0800
+Subject: [PATCH 04/10] fix: ftbfs
+
+Signed-off-by: Han Gao <gaohan@iscas.ac.cn>
+---
+ scripts/dtc/dtc-lexer.l | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/scripts/dtc/dtc-lexer.l b/scripts/dtc/dtc-lexer.l
+index 24af549977..f57c9a7e83 100644
+--- a/scripts/dtc/dtc-lexer.l
++++ b/scripts/dtc/dtc-lexer.l
+@@ -38,6 +38,7 @@ LINECOMMENT	"//".*\n
+ #include "srcpos.h"
+ #include "dtc-parser.tab.h"
+ 
++extern YYLTYPE yylloc;
+ extern bool treesource_error;
+ 
+ /* CAUTION: this will stop working if we ever use yyless() or yyunput() */
+-- 
+2.34.1
+

@@ -1,0 +1,25 @@
+From 6ae703ba2c06fcd6e09d23c05ca69a16d072f5d3 Mon Sep 17 00:00:00 2001
+From: Kas User <kas@example.com>
+Date: Sun, 6 Aug 2023 07:26:06 +0000
+Subject: [PATCH] Prompt TEST
+
+---
+ configs/light_beagle_defconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configs/light_beagle_defconfig b/configs/light_beagle_defconfig
+index 8db845f9d1..ffa484a387 100644
+--- a/configs/light_beagle_defconfig
++++ b/configs/light_beagle_defconfig
+@@ -19,7 +19,7 @@ CONFIG_DISPLAY_BOARDINFO=y
+ # CONFIG_SPL_LEGACY_IMAGE_SUPPORT is not set
+ CONFIG_SPL_RAM_SUPPORT=y
+ CONFIG_SPL_RAM_DEVICE=y
+-CONFIG_SYS_PROMPT="C910 Light# "
++CONFIG_SYS_PROMPT="TEST Light# "
+ CONFIG_CMD_BOOT_SLAVE=y
+ CONFIG_CMD_ERASEENV=y
+ CONFIG_CMD_MEMTEST=y
+-- 
+2.30.2
+

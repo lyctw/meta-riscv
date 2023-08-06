@@ -1,4 +1,6 @@
 # short-description: Create SD card image for BeagleV-Ahead (TH1520)
 
-part /boot --source bootimg-partition --ondisk mmcblk0 --fstype=vfat --label boot --active --fixed-size 64M --align 4096
-part / --source rootfs --ondisk mmcblk0 --fstype=ext4 --label root --align 4096 --size 64M
+part /boot --source bootimg-partition --ondisk mmcblk0 --fstype=ext4 --label boot --active --fixed-size 64M --align 4096
+part / --source rootfs --ondisk mmcblk0 --fstype=ext4 --label root --align 4096 --part-type 80a5a8e9-c744-491a-93c1-4f4194fd690a
+
+bootloader --ptable gpt

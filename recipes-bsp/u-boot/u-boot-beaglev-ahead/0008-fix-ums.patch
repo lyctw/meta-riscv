@@ -1,0 +1,33 @@
+From 2534d1b7b981690332b17a900de11e8fa58c5f5b Mon Sep 17 00:00:00 2001
+From: chainsx <chainsx@outlook.com>
+Date: Tue, 4 Jul 2023 01:07:27 +0800
+Subject: [PATCH 08/10] fix ums
+
+---
+ arch/riscv/include/asm/bitops.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/arch/riscv/include/asm/bitops.h b/arch/riscv/include/asm/bitops.h
+index 536629bbec..57556c37b4 100644
+--- a/arch/riscv/include/asm/bitops.h
++++ b/arch/riscv/include/asm/bitops.h
+@@ -90,6 +90,16 @@ static inline int __test_and_clear_bit(int nr, void *addr)
+ 	return retval;
+ }
+ 
++static inline int test_and_clear_bit(int nr, volatile void * addr)
++{
++	unsigned long flags = 0;
++	int out;
++
++	out = __test_and_clear_bit(nr, addr);
++
++	return out;
++}
++
+ static inline int __test_and_change_bit(int nr, void *addr)
+ {
+ 	int mask, retval;
+-- 
+2.34.1
+

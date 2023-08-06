@@ -1,0 +1,32 @@
+From 78b67137757930e11983e3cc093fd8be51d798a4 Mon Sep 17 00:00:00 2001
+From: chainsx <pzhrhlx@outlook.com>
+Date: Fri, 7 Jul 2023 20:30:44 +0800
+Subject: [PATCH 09/10] add ums in light_lpi4a_defconfig
+
+---
+ configs/light_lpi4a_defconfig | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/configs/light_lpi4a_defconfig b/configs/light_lpi4a_defconfig
+index 047dd9463b..8d0cf4acfa 100644
+--- a/configs/light_lpi4a_defconfig
++++ b/configs/light_lpi4a_defconfig
+@@ -63,6 +63,7 @@ CONFIG_MMC_SDHCI_SNPS=y
+ CONFIG_MMC_SDHCI_SDMA=y
+ CONFIG_CMD_MMC=y
+ CONFIG_CMD_MMC_RPMB=y
++CONFIG_CMD_USB_MASS_STORAGE=y
+ CONFIG_SUPPORT_EMMC_RPMB=y
+ CONFIG_DM_MTD=y
+ CONFIG_MTD_SPI_NAND=y
+@@ -82,6 +83,7 @@ CONFIG_USB_GADGET=y
+ CONFIG_USB_GADGET_MANUFACTURER="U-Boot-THEAD"
+ CONFIG_USB_GADGET_VENDOR_NUM=0x1234
+ CONFIG_USB_GADGET_PRODUCT_NUM=0x8888
++CONFIG_USB_FUNCTION_MASS_STORAGE=y
+ # CONFIG_SPL_USE_TINY_PRINTF is not set
+ # CONFIG_EFI_LOADER is not set
+ # CONFIG_LIGHT_SEC_BOOT is not set
+-- 
+2.34.1
+
