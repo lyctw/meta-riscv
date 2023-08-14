@@ -1,0 +1,69 @@
+From 19b941c7cb9229861e39b9f9b9db2b5945ff6743 Mon Sep 17 00:00:00 2001
+From: Andy Chiu <andy.chiu@sifive.com>
+Date: Mon, 5 Jun 2023 11:07:17 +0000
+Subject: [PATCH 17/23] riscv: hwcap: change ELF_HWCAP to a function
+
+Using a function is flexible to represent ELF_HWCAP. So the kernel may
+encode hwcap reflecting supported hardware features just at the moment of
+the start of each program.
+
+This will be helpful when we introduce prctl/sysctl interface to control
+per-process availability of Vector extension in following patches.
+Programs started with V disabled should see V masked off in theirs
+ELF_HWCAP.
+
+Signed-off-by: Andy Chiu <andy.chiu@sifive.com>
+Reviewed-by: Conor Dooley <conor.dooley@microchip.com>
+Link: https://lore.kernel.org/r/20230605110724.21391-21-andy.chiu@sifive.com
+Signed-off-by: Palmer Dabbelt <palmer@rivosinc.com>
+---
+ arch/riscv/include/asm/elf.h   | 2 +-
+ arch/riscv/include/asm/hwcap.h | 2 ++
+ arch/riscv/kernel/cpufeature.c | 5 +++++
+ 3 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/arch/riscv/include/asm/elf.h b/arch/riscv/include/asm/elf.h
+index c7eb40383453..ceb9c02a802e 100644
+--- a/arch/riscv/include/asm/elf.h
++++ b/arch/riscv/include/asm/elf.h
+@@ -64,7 +64,7 @@ extern bool compat_elf_check_arch(Elf32_Ehdr *hdr);
+  * instruction set this CPU supports.  This could be done in user space,
+  * but it's not easy, and we've already done it here.
+  */
+-#define ELF_HWCAP	(elf_hwcap)
++#define ELF_HWCAP	riscv_get_elf_hwcap()
+ extern unsigned long elf_hwcap;
+ 
+ /*
+diff --git a/arch/riscv/include/asm/hwcap.h b/arch/riscv/include/asm/hwcap.h
+index 34af4a13f7e5..4d90787f4959 100644
+--- a/arch/riscv/include/asm/hwcap.h
++++ b/arch/riscv/include/asm/hwcap.h
+@@ -76,6 +76,8 @@ enum riscv_isa_ext_key {
+ 	RISCV_ISA_EXT_KEY_MAX,
+ };
+ 
++unsigned long riscv_get_elf_hwcap(void);
++
+ struct riscv_isa_ext_data {
+ 	/* Name of the extension displayed to userspace via /proc/cpuinfo */
+ 	char uprop[RISCV_ISA_EXT_NAME_LEN_MAX];
+diff --git a/arch/riscv/kernel/cpufeature.c b/arch/riscv/kernel/cpufeature.c
+index 0743310ea9d1..6c2a6bef497c 100644
+--- a/arch/riscv/kernel/cpufeature.c
++++ b/arch/riscv/kernel/cpufeature.c
+@@ -264,6 +264,11 @@ void __init riscv_fill_hwcap(void)
+ 	}
+ }
+ 
++unsigned long riscv_get_elf_hwcap(void)
++{
++	return (elf_hwcap & ((1UL << RISCV_ISA_EXT_BASE) - 1));
++}
++
+ #ifdef CONFIG_RISCV_ALTERNATIVE
+ static bool __init_or_module cpufeature_probe_svpbmt(unsigned int stage)
+ {
+-- 
+2.34.1
+

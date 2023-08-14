@@ -13,6 +13,29 @@ KMETA = "kernel-meta"
 # directories that may be missing"
 SRC_URI = "git://github.com/${FORK}/linux.git;name=machine;protocol=https;branch=${BRANCH} \
            git://git.yoctoproject.org/yocto-kernel-cache;type=kmeta;name=meta;branch=master;destsuffix=${KMETA} \
+           file://0001-riscv-Rename-__switch_to_aux-fpu.patch \
+           file://0002-riscv-Extending-cpufeature.c-to-detect-V-extension.patch \
+           file://0003-riscv-Add-new-csr-defines-related-to-vector-extensio.patch \
+           file://0004-riscv-Clear-vector-regfile-on-bootup.patch \
+           file://0005-riscv-Disable-Vector-Instructions-for-kernel-itself.patch \
+           file://0006-riscv-Introduce-Vector-enable-disable-helpers.patch \
+           file://0007-riscv-Introduce-riscv_v_vsize-to-record-size-of-Vect.patch \
+           file://0008-riscv-Introduce-struct-helpers-to-save-restore-per-t.patch \
+           file://0009-riscv-Add-task-switch-support-for-vector.patch \
+           file://0010-riscv-Allocate-user-s-vector-context-in-the-first-us.patch \
+           file://0011-riscv-Add-ptrace-vector-support.patch \
+           file://0012-riscv-signal-check-fp-reserved-words-unconditionally.patch \
+           file://0013-riscv-signal-Add-sigcontext-save-restore-for-vector.patch \
+           file://0014-riscv-signal-Report-signal-frame-size-to-userspace-v.patch \
+           file://0015-riscv-signal-validate-altstack-to-reflect-Vector.patch \
+           file://0016-riscv-prevent-stack-corruption-by-reserving-task_pt_.patch \
+           file://0017-riscv-hwcap-change-ELF_HWCAP-to-a-function.patch \
+           file://0018-riscv-Add-prctl-controls-for-userspace-vector-manage.patch \
+           file://0019-riscv-Add-sysctl-to-set-the-default-vector-rule-for-.patch \
+           file://0020-riscv-detect-assembler-support-for-.option-arch.patch \
+           file://0021-riscv-Enable-Vector-code-to-be-built.patch \
+           file://0022-riscv-Add-documentation-for-Vector.patch \
+           file://0023-selftests-Test-RISC-V-Vector-prctl-interface.patch \
            "
 
 SRC_URI:append:mangopi-mq-pro = " \
