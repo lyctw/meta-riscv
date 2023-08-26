@@ -1,4 +1,4 @@
-From a14bb61e3076666fabeccff40a2efba908056e8c Mon Sep 17 00:00:00 2001
+From ab6ed2cf127a09b367dc74bd161b86e0ace85d50 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 21 May 2023 09:36:53 +0000
 Subject: [PATCH] platform: rzfive: Add platform compatible string
@@ -16,6 +16,7 @@ with platform overrides.
 
 Upstream-Status: Pending
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+
 ---
  platform/generic/renesas/rzfive/rzfive.c | 1 +
  1 file changed, 1 insertion(+)
@@ -32,6 +33,3 @@ index a69797b..0ed5028 100644
  	{ /* sentinel */ }
  };
  
--- 
-2.30.2
-

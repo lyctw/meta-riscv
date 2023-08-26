@@ -1,0 +1,25 @@
+From 7cf1552eb18e949f43d697a1c5193d2ee1ceae9e Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Mon, 11 Sep 2023 13:41:15 +0800
+Subject: [PATCH v2 4/8] add andes cpu intc
+
+---
+ arch/riscv/boot/dts/renesas/r9a07g043f.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/riscv/boot/dts/renesas/r9a07g043f.dtsi b/arch/riscv/boot/dts/renesas/r9a07g043f.dtsi
+index 6ec1c6f9a403..5a6949cb3faa 100644
+--- a/arch/riscv/boot/dts/renesas/r9a07g043f.dtsi
++++ b/arch/riscv/boot/dts/renesas/r9a07g043f.dtsi
+@@ -34,7 +34,7 @@ cpu0: cpu@0 {
+ 
+ 			cpu0_intc: interrupt-controller {
+ 				#interrupt-cells = <1>;
+-				compatible = "riscv,cpu-intc";
++				compatible = "andestech,cpu-intc";
+ 				interrupt-controller;
+ 			};
+ 		};
+-- 
+2.34.1
+

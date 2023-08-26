@@ -1,0 +1,96 @@
+From e871f5cbef7d484eeb96c20e74f99ba03301a0ee Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Sun, 27 Aug 2023 11:55:12 +0800
+Subject: [PATCH] !!!DO NOT REVIEW!!! print counter status at boot-time
+
+Upstream-Status: Pending
+
+---
+ platform/generic/andes/ae350.c           | 7 +++++++
+ platform/generic/andes/andes_pmu.c       | 4 ++++
+ platform/generic/renesas/rzfive/rzfive.c | 7 +++++++
+ 3 files changed, 18 insertions(+)
+
+diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
+index c8adb0d..7b5c274 100644
+--- a/platform/generic/andes/ae350.c
++++ b/platform/generic/andes/ae350.c
+@@ -14,6 +14,7 @@
+ #include <sbi_utils/sys/atcsmu.h>
+ #include <sbi/riscv_asm.h>
+ #include <sbi/sbi_bitops.h>
++#include <sbi/sbi_console.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_hsm.h>
+ #include <sbi/sbi_ipi.h>
+@@ -105,6 +106,12 @@ static void ae350_hsm_device_init(void)
+ 
+ static int ae350_final_init(bool cold_boot, const struct fdt_match *match)
+ {
++	sbi_printf("%s: hart%d: mcounterwen: %#lx\n", __func__, current_hartid(), csr_read(CSR_MCOUNTERWEN));
++	sbi_printf("%s: hart%d: mcountermask_m: %#lx\n", __func__, current_hartid(), csr_read(CSR_MCOUNTERMASK_M));
++	sbi_printf("%s: hart%d: mcountermask_s: %#lx\n", __func__, current_hartid(), csr_read(CSR_MCOUNTERMASK_S));
++	sbi_printf("%s: hart%d: mcountermask_u: %#lx\n", __func__, current_hartid(), csr_read(CSR_MCOUNTERMASK_U));
++	sbi_printf("%s: hart%d: mcounterinten: %#lx\n", __func__, current_hartid(), csr_read(CSR_MCOUNTERINTEN));
++	sbi_printf("%s: hart%d: mslideleg: %#lx\n", __func__, current_hartid(), csr_read(CSR_MSLIDELEG));
+ 	if (cold_boot)
+ 		ae350_hsm_device_init();
+ 
+diff --git a/platform/generic/andes/andes_pmu.c b/platform/generic/andes/andes_pmu.c
+index 61c2da8..3de07ed 100644
+--- a/platform/generic/andes/andes_pmu.c
++++ b/platform/generic/andes/andes_pmu.c
+@@ -6,12 +6,14 @@
+ #include <andes/andes45.h>
+ #include <andes/andes_pmu.h>
+ #include <sbi/riscv_asm.h>
++#include <sbi/sbi_console.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_pmu.h>
+ #include <sbi/sbi_scratch.h>
+ 
+ static void andes_hw_counter_enable_irq(uint32_t ctr_idx)
+ {
++	sbi_printf("%s: ctr_idx: %d\n", __func__, ctr_idx);
+ 	unsigned long mip_val;
+ 
+ 	if (ctr_idx >= SBI_PMU_HW_CTR_MAX)
+@@ -26,11 +28,13 @@ static void andes_hw_counter_enable_irq(uint32_t ctr_idx)
+ 
+ static void andes_hw_counter_disable_irq(uint32_t ctr_idx)
+ {
++	sbi_printf("%s: ctr_idx: %d\n", __func__, ctr_idx);
+ 	csr_clear(CSR_MCOUNTERINTEN, BIT(ctr_idx));
+ }
+ 
+ static void andes_hw_counter_filter_mode(unsigned long flags, int ctr_idx)
+ {
++	sbi_printf("%s: flags: %#lx, ctr_idx: %d\n", __func__, flags, ctr_idx);
+ 	if (!flags) {
+ 		csr_write(CSR_MCOUNTERMASK_S, 0);
+ 		csr_write(CSR_MCOUNTERMASK_U, 0);
+diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+index fb56ef8..b51f2e2 100644
+--- a/platform/generic/renesas/rzfive/rzfive.c
++++ b/platform/generic/renesas/rzfive/rzfive.c
+@@ -10,6 +10,7 @@
+ #include <andes/andes45.h>
+ #include <sbi/riscv_asm.h>
+ #include <platform_override.h>
++#include <sbi/sbi_console.h>
+ #include <sbi/sbi_domain.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ 
+@@ -28,6 +29,12 @@ static const struct andes45_pma_region renesas_rzfive_pma_regions[] = {
+ 
+ static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *match)
+ {
++	sbi_printf("%s: mcounterwen: %#lx\n", __func__, csr_read(CSR_MCOUNTERWEN));
++	sbi_printf("%s: mcountermask_m: %#lx\n", __func__, csr_read(CSR_MCOUNTERMASK_M));
++	sbi_printf("%s: mcountermask_s: %#lx\n", __func__, csr_read(CSR_MCOUNTERMASK_S));
++	sbi_printf("%s: mcountermask_u: %#lx\n", __func__, csr_read(CSR_MCOUNTERMASK_U));
++	sbi_printf("%s: mcounterinten: %#lx\n", __func__, csr_read(CSR_MCOUNTERINTEN));
++	sbi_printf("%s: mslideleg: %#lx\n", __func__, csr_read(CSR_MSLIDELEG));
+ 	return andes45_pma_setup_regions(renesas_rzfive_pma_regions,
+ 					 array_size(renesas_rzfive_pma_regions));
+ }

@@ -1,0 +1,27 @@
+From 72d3f29764792180f05a8b0b801ce584c9002041 Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Sun, 10 Sep 2023 17:36:59 +0800
+Subject: [PATCH v2 5/8] Documentations: cpus.yaml: Add andestech,cpu-intc
+
+---
+ Documentation/devicetree/bindings/riscv/cpus.yaml | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/devicetree/bindings/riscv/cpus.yaml b/Documentation/devicetree/bindings/riscv/cpus.yaml
+index 38c0b5213736..9806e3fd090a 100644
+--- a/Documentation/devicetree/bindings/riscv/cpus.yaml
++++ b/Documentation/devicetree/bindings/riscv/cpus.yaml
+@@ -98,7 +98,9 @@ properties:
+         const: 1
+ 
+       compatible:
+-        const: riscv,cpu-intc
++        enum:
++          - riscv,cpu-intc
++          - andestech,cpu-intc
+ 
+       interrupt-controller: true
+ 
+-- 
+2.34.1
+

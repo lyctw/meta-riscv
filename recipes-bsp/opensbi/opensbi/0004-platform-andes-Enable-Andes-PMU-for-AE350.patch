@@ -1,0 +1,45 @@
+From b52165133f2b03eb8b6881e70b5ab5963036272c Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Sun, 3 Sep 2023 14:01:22 +0800
+Subject: [PATCH] platform: andes: Enable Andes PMU for AE350
+
+Enable Andes PMU extension support for AE350 platforms.
+
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Upstream-Status: Pending
+
+---
+ platform/generic/Kconfig       | 1 +
+ platform/generic/andes/ae350.c | 2 ++
+ 2 files changed, 3 insertions(+)
+
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index 72768ed..16c28fe 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -31,6 +31,7 @@ config PLATFORM_ALLWINNER_D1
+ config PLATFORM_ANDES_AE350
+ 	bool "Andes AE350 support"
+ 	select SYS_ATCSMU
++	select ANDES_PMU
+ 	default n
+ 
+ config PLATFORM_RENESAS_RZFIVE
+diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
+index 01bd02d..c8adb0d 100644
+--- a/platform/generic/andes/ae350.c
++++ b/platform/generic/andes/ae350.c
+@@ -8,6 +8,7 @@
+  */
+ 
+ #include <platform_override.h>
++#include <andes/andes_pmu.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ #include <sbi_utils/fdt/fdt_fixup.h>
+ #include <sbi_utils/sys/atcsmu.h>
+@@ -118,4 +119,5 @@ static const struct fdt_match andes_ae350_match[] = {
+ const struct platform_override andes_ae350 = {
+ 	.match_table = andes_ae350_match,
+ 	.final_init  = ae350_final_init,
++	.extensions_init = andes_pmu_extensions_init,
+ };
