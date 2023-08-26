@@ -1,0 +1,259 @@
+From 3351dc72019c8fb44dff3c1e1ea8c08a4fbdf02d Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Sat, 26 Aug 2023 19:16:12 +0800
+Subject: [PATCH] wip
+
+Upstream-Status: Pending
+---
+ include/sbi/sbi_pmu.h                      |  6 ++
+ lib/sbi/sbi_pmu.c                          |  6 +-
+ platform/generic/Kconfig                   |  1 +
+ platform/generic/andes/Kconfig             |  4 +
+ platform/generic/andes/andes_pmu.c         | 85 ++++++++++++++++++++++
+ platform/generic/andes/objects.mk          |  1 +
+ platform/generic/include/andes/andes45.h   | 26 +++++++
+ platform/generic/include/andes/andes_pmu.h | 12 +++
+ platform/generic/renesas/rzfive/rzfive.c   |  2 +
+ 9 files changed, 142 insertions(+), 1 deletion(-)
+ create mode 100644 platform/generic/andes/andes_pmu.c
+ create mode 100644 platform/generic/include/andes/andes_pmu.h
+
+diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+index 16f6877..d63149c 100644
+--- a/include/sbi/sbi_pmu.h
++++ b/include/sbi/sbi_pmu.h
+@@ -89,6 +89,12 @@ struct sbi_pmu_device {
+ 	 * Custom function returning the machine-specific irq-bit.
+ 	 */
+ 	int (*hw_counter_irq_bit)(void);
++
++	/**
++	 * Custom function to inhibit counting of events while in
++	 * specified mode.
++	 */
++	void (*hw_counter_filter_mode)(unsigned long flags, int counter_index);
+ };
+ 
+ /** Get the PMU platform device */
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 939f29d..209cb96 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -579,7 +579,11 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+ 		pmu_dev->hw_counter_disable_irq(ctr_idx);
+ 
+ 	/* Update the inhibit flags based on inhibit flags received from supervisor */
+-	pmu_update_inhibit_flags(flags, &mhpmevent_val);
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
++		pmu_update_inhibit_flags(flags, &mhpmevent_val);
++
++	if (pmu_dev && pmu_dev->hw_counter_filter_mode)
++		pmu_dev->hw_counter_filter_mode(flags, ctr_idx);
+ 
+ #if __riscv_xlen == 32
+ 	csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, mhpmevent_val & 0xFFFFFFFF);
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index 72768ed..5191636 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -37,6 +37,7 @@ config PLATFORM_RENESAS_RZFIVE
+ 	bool "Renesas RZ/Five support"
+ 	select ANDES45_PMA
+ 	select ANDES_SBI
++	select ANDES_PMU
+ 	default n
+ 
+ config PLATFORM_SIFIVE_FU540
+diff --git a/platform/generic/andes/Kconfig b/platform/generic/andes/Kconfig
+index a91fb9c..056327b 100644
+--- a/platform/generic/andes/Kconfig
++++ b/platform/generic/andes/Kconfig
+@@ -7,3 +7,7 @@ config ANDES45_PMA
+ config ANDES_SBI
+ 	bool "Andes SBI support"
+ 	default n
++
++config ANDES_PMU
++	bool "Andes PMU support"
++	default n
+diff --git a/platform/generic/andes/andes_pmu.c b/platform/generic/andes/andes_pmu.c
+new file mode 100644
+index 0000000..c846b74
+--- /dev/null
++++ b/platform/generic/andes/andes_pmu.c
+@@ -0,0 +1,85 @@
++// SPDX-License-Identifier: BSD-2-Clause
++/*
++ * Copyright (C) 2022 Andes Technology Corporation
++ *
++ */
++#include <andes/andes45.h>
++#include <andes/andes_pmu.h>
++#include <sbi/riscv_asm.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_pmu.h>
++#include <sbi/sbi_scratch.h>
++
++static void andes_hw_counter_enable_irq(uint32_t ctr_idx)
++{
++	unsigned long mip_val;
++
++	if (ctr_idx >= SBI_PMU_HW_CTR_MAX)
++		return;
++
++	mip_val = csr_read(CSR_MIP);
++	if (!(mip_val & MIP_PMOVI))
++		csr_clear(CSR_MCOUNTEROVF, BIT(ctr_idx));
++
++	csr_set(CSR_MCOUNTERINTEN, BIT(ctr_idx));
++}
++
++static void andes_hw_counter_disable_irq(uint32_t ctr_idx)
++{
++	csr_clear(CSR_MCOUNTERINTEN, BIT(ctr_idx));
++}
++
++static void andes_hw_counter_filter_mode(unsigned long flags, int ctr_idx)
++{
++	if (!flags) {
++		csr_write(CSR_MCOUNTERMASK_S, 0);
++		csr_write(CSR_MCOUNTERMASK_U, 0);
++	}
++	if (flags & SBI_PMU_CFG_FLAG_SET_UINH) {
++		csr_clear(CSR_MCOUNTERMASK_S, BIT(ctr_idx));
++		csr_set(CSR_MCOUNTERMASK_U, BIT(ctr_idx));
++	}
++	if (flags & SBI_PMU_CFG_FLAG_SET_SINH) {
++		csr_set(CSR_MCOUNTERMASK_S, BIT(ctr_idx));
++		csr_clear(CSR_MCOUNTERMASK_U, BIT(ctr_idx));
++	}
++}
++
++static struct sbi_pmu_device andes_pmu = {
++	.name	= "andes_pmu",
++	.hw_counter_enable_irq = andes_hw_counter_enable_irq,
++	.hw_counter_disable_irq = andes_hw_counter_disable_irq,
++	/*
++	 * In andes_extensions_init(), we set mslideleg[18] for each
++	 * hart instead of mideleg, so leave hw_counter_irq_bit() hook
++	 * unimplemented.
++	 */
++	.hw_counter_irq_bit = NULL,
++	.hw_counter_filter_mode = andes_hw_counter_filter_mode
++};
++
++int andes_extensions_init(const struct fdt_match *match,
++			  struct sbi_hart_features *hfeatures)
++{
++	if (andes_pmu()) {
++		/* 
++		 * Hardware should not support both Andes HPM and
++		 * standard Sscofpmf, as they serve the same purpose.
++		 */
++		if(sbi_hart_has_extension(sbi_scratch_thishart_ptr(), SBI_HART_EXT_SSCOFPMF))
++			ebreak();
++
++		/* Machine counter write enable */
++		csr_write(CSR_MCOUNTERWEN, 0xfffffffd);
++		/* Supervisor local interrupt enable */
++		//csr_write(CSR_SLIE, MIP_PMOVI); // Done in kernel??
++		/* disable machine counter in M-mode */
++		csr_write(CSR_MCOUNTERMASK_M, 0xfffffffd);
++		/* delegate S-mode local interrupt to S-mode */
++		csr_write(CSR_MSLIDELEG, MIP_PMOVI);
++
++		sbi_pmu_set_device(&andes_pmu);
++	}
++
++	return 0;
++}
+diff --git a/platform/generic/andes/objects.mk b/platform/generic/andes/objects.mk
+index e8f86ea..6a8c66c 100644
+--- a/platform/generic/andes/objects.mk
++++ b/platform/generic/andes/objects.mk
+@@ -7,3 +7,4 @@ platform-objs-$(CONFIG_PLATFORM_ANDES_AE350) += andes/ae350.o andes/sleep.o
+ 
+ platform-objs-$(CONFIG_ANDES45_PMA) += andes/andes45-pma.o
+ platform-objs-$(CONFIG_ANDES_SBI) += andes/andes_sbi.o
++platform-objs-$(CONFIG_ANDES_PMU) += andes/andes_pmu.o
+diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
+index f570994..6b141cf 100644
+--- a/platform/generic/include/andes/andes45.h
++++ b/platform/generic/include/andes/andes45.h
+@@ -12,6 +12,17 @@
+ #define CSR_MDCM_CFG		0xfc1
+ #define CSR_MMSC_CFG		0xfc2
+ 
++/* Machine Trap Related Registers */
++#define CSR_MSLIDELEG		0x7d5
++
++/* Counter Related Registers */
++#define CSR_MCOUNTERWEN		0x7ce
++#define CSR_MCOUNTERINTEN	0x7cf
++#define CSR_MCOUNTERMASK_M	0x7d1
++#define CSR_MCOUNTERMASK_S	0x7d2
++#define CSR_MCOUNTERMASK_U	0x7d3
++#define CSR_MCOUNTEROVF		0x7d4
++
+ #define MICM_CFG_ISZ_OFFSET		6
+ #define MICM_CFG_ISZ_MASK		(0x7  << MICM_CFG_ISZ_OFFSET)
+ 
+@@ -26,4 +37,19 @@
+ #define MCACHE_CTL_CCTL_SUEN_OFFSET	8
+ #define MCACHE_CTL_CCTL_SUEN_MASK	(0x1 << MCACHE_CTL_CCTL_SUEN_OFFSET)
+ 
++/* Performance monitor */
++#define MMSC_CFG_PMNDS_MASK		(1 << 15)
++#define MIP_PMOVI			(1 << 18)
++
++#ifndef __ASSEMBLER__
++
++#define andes_pmu()					\
++({							\
++	(((csr_read(CSR_MMSC_CFG) &			\
++	   MMSC_CFG_PMNDS_MASK)				\
++	  && misa_extension('S')) ? true : false);	\
++})
++
++#endif /* __ASSEMBLER__ */
++
+ #endif /* _RISCV_ANDES45_H */
+diff --git a/platform/generic/include/andes/andes_pmu.h b/platform/generic/include/andes/andes_pmu.h
+new file mode 100644
+index 0000000..74825e2
+--- /dev/null
++++ b/platform/generic/include/andes/andes_pmu.h
+@@ -0,0 +1,12 @@
++// SPDX-License-Identifier: BSD-2-Clause
++
++#ifndef _RISCV_ANDES_EXT_H
++#define _RISCV_ANDES_EXT_H
++
++#include <sbi/sbi_hart.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++
++int andes_extensions_init(const struct fdt_match *match,
++			  struct sbi_hart_features *hfeatures);
++
++#endif /* _RISCV_ANDES_EXT_H */
+diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+index 68a69fe..b02be90 100644
+--- a/platform/generic/renesas/rzfive/rzfive.c
++++ b/platform/generic/renesas/rzfive/rzfive.c
+@@ -5,6 +5,7 @@
+  */
+ 
+ #include <andes/andes45_pma.h>
++#include <andes/andes_pmu.h>
+ #include <andes/andes_sbi.h>
+ #include <andes/andes45.h>
+ #include <sbi/riscv_asm.h>
+@@ -68,4 +69,5 @@ const struct platform_override renesas_rzfive = {
+ 	.early_init = renesas_rzfive_early_init,
+ 	.final_init = renesas_rzfive_final_init,
+ 	.vendor_ext_provider = andes_sbi_vendor_ext_provider,
++	.extensions_init = andes_extensions_init,
+ };
+-- 
+2.34.1
+

@@ -13,6 +13,8 @@ SRC_URI:append:tinker-v-rzfive = " \
     file://0001-lib-serial-Add-compatible-string-for-renesas_scif.patch \
     file://0002-platform-rzfive-Add-platform-compatible-string.patch \
     file://0003-rzfive-enable-caches.patch \
+    file://0001-pmu-wip.patch \
+    file://0001-DROP-Add-fdt-pmu-debug-messsages.patch \
 "
 
 DEPENDS:append:jh7110 = " u-boot-tools-native dtc-native"

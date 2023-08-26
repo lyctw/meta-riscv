@@ -1,0 +1,27 @@
+From 048942903d5c2d3c6237b1cc0d3aac94e1cc9c89 Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Sat, 26 Aug 2023 15:29:53 +0800
+Subject: [PATCH 1/2] Rename ANDESTECH -> ANDES
+
+---
+ arch/riscv/include/asm/errata_list.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/riscv/include/asm/errata_list.h b/arch/riscv/include/asm/errata_list.h
+index e2ecd01bfac7..f11d9b1ebe6f 100644
+--- a/arch/riscv/include/asm/errata_list.h
++++ b/arch/riscv/include/asm/errata_list.h
+@@ -12,8 +12,8 @@
+ #include <asm/vendorid_list.h>
+ 
+ #ifdef CONFIG_ERRATA_ANDES
+-#define ERRATA_ANDESTECH_NO_IOCP	0
+-#define ERRATA_ANDESTECH_NUMBER		1
++#define ERRATA_ANDES_NO_IOCP 0
++#define ERRATA_ANDES_NUMBER 2
+ #endif
+ 
+ #ifdef CONFIG_ERRATA_SIFIVE
+-- 
+2.34.1
+

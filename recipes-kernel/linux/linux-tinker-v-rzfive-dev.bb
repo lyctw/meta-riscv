@@ -12,6 +12,8 @@ FORK ?= "prabhakarlad"
 
 SRC_URI = "git://github.com/${FORK}/linux.git;protocol=https;branch=${BRANCH} \
            file://0001-riscv-dts-Add-Tinker-V-dts.patch \
+           file://0001-Rename-ANDESTECH-ANDES.patch \
+           file://0002-wip.patch \
            file://set-mmap-min-addr.cfg \
            "
 
