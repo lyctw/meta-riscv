@@ -43,9 +43,10 @@ local_conf_header:
     IMAGE_INSTALL:append = " haveged"
     IMAGE_INSTALL:append = " packagegroup-core-buildessential glibc-staticdev vim htop tmux file"
     # Perf
-    EXTRA_IMAGE_FEATURES = "debug-tweaks tools-profile dbg-pkgs"
-    INHIBIT_PACKAGE_STRIP = "1"
-    PACKAGE_DEBUG_SPLIT_STYLE = "debug-file-directory"
+    EXTRA_IMAGE_FEATURES = "debug-tweaks tools-profile"
+    #EXTRA_IMAGE_FEATURES = "debug-tweaks tools-profile dbg-pkgs"
+    #INHIBIT_PACKAGE_STRIP = "1"
+    #PACKAGE_DEBUG_SPLIT_STYLE = "debug-file-directory"
     IMAGE_FEATURES += " \
         ssh-server-openssh \
         debug-tweaks \
