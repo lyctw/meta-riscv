@@ -1,19 +1,20 @@
-From e152f11ca5faba8867e291b881d001324ff00bd4 Mon Sep 17 00:00:00 2001
+From 176e7744aff3d9c6f8857e2e110d00966bf343ed Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 13:57:40 +0800
-Subject: [PATCH] platform: include: andes45: Add PMU related CSR defines
+Subject: [PATCH v2 03/12] platform: include: andes45: Add PMU related CSR
+ defines
 
 This patch adds CSR for Andes PMU extension.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 Upstream-Status: Pending
-
 ---
  platform/generic/include/andes/andes45.h | 26 ++++++++++++++++++++++++
  1 file changed, 26 insertions(+)
 
 diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
-index f570994..6b141cf 100644
+index f570994..ce31617 100644
 --- a/platform/generic/include/andes/andes45.h
 +++ b/platform/generic/include/andes/andes45.h
 @@ -12,6 +12,17 @@
@@ -44,7 +45,7 @@ index f570994..6b141cf 100644
 +
 +#ifndef __ASSEMBLER__
 +
-+#define andes_pmu()					\
++#define has_andes_pmu()					\
 +({							\
 +	(((csr_read(CSR_MMSC_CFG) &			\
 +	   MMSC_CFG_PMNDS_MASK)				\
@@ -54,3 +55,6 @@ index f570994..6b141cf 100644
 +#endif /* __ASSEMBLER__ */
 +
  #endif /* _RISCV_ANDES45_H */
+-- 
+2.34.1
+

@@ -1,7 +1,7 @@
-From 80c823bf6a727b8a7347595bc720515026e2f849 Mon Sep 17 00:00:00 2001
+From 610ba9b6128a3633e0ff586813e61404bc068baa Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 14:08:01 +0800
-Subject: [PATCH] docs: pmu: Add Andes PMU node example
+Subject: [PATCH v2 07/12] docs: pmu: Add Andes PMU node example
 
 Add PMU node example for event index to counter index mapping
 and selector value translation of Andes' CPUs.
@@ -10,17 +10,18 @@ Currently, there are 4 HPM counters that can be used to monitor
 all of the events for each hart.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Locus Wei-Han Chen <locus84@andestech.com>
+Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 Upstream-Status: Pending
-
 ---
- docs/pmu_support.md | 87 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 87 insertions(+)
+ docs/pmu_support.md | 82 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 82 insertions(+)
 
 diff --git a/docs/pmu_support.md b/docs/pmu_support.md
-index 8cfa08c..6864bd9 100644
+index 8cfa08c..91d81dd 100644
 --- a/docs/pmu_support.md
 +++ b/docs/pmu_support.md
-@@ -125,3 +125,90 @@ pmu {
+@@ -125,3 +125,85 @@ pmu {
  					  <0x0 0x2 0xffffffff 0xffffe0ff 0x18>;
  };
  ```
@@ -48,13 +49,9 @@ index 8cfa08c..6864bd9 100644
 +					 <0x10003 0x0000 0x91>,  /* L1D_WRITE_MISS   -> D-Cache store miss */
 +					 <0x10008 0x0000 0x21>,  /* L1I_READ_ACCESS  -> I-Cache access */
 +					 <0x10009 0x0000 0x31>,  /* L1I_READ_MISS    -> I-Cache miss */
-+					 <0x10018 0x0000 0x131>, /* DTLB_READ_ACCESS -> Main DTLB access */
-+					 <0x10020 0x0000 0x111>; /* ITLB_READ_ACCESS -> Main ITLB access */
 +	riscv,event-to-mhpmcounters = <0x1 0x6 0x78>,
 +							<0x10000 0x10003 0x78>,
 +							<0x10008 0x10009 0x78>,
-+							<0x10018 0x10018 0x78>,
-+							<0x10020 0x10020 0x78>;
 +	riscv,raw-event-to-mhpmcounters =
 +						<0x0 0x10 0xffffffff 0xffffffff 0x78>, /* Cycle count */
 +						<0x0 0x20 0xffffffff 0xffffffff 0x78>, /* Retired instruction count */
@@ -74,7 +71,7 @@ index 8cfa08c..6864bd9 100644
 +						<0x0 0x100 0xffffffff 0xffffffff 0x78>, /* Integer division instruction count */
 +						<0x0 0x110 0xffffffff 0xffffffff 0x78>, /* Floating-point load instruction count */
 +						<0x0 0x120 0xffffffff 0xffffffff 0x78>, /* Floating-point store instruction count */
-+						<0x0 0x130 0xffffffff 0xffffffff 0x78>, /* Floating-point addition instruction count */
++						<0x0 0x130 0xffffffff 0xffffffff 0x78>, /* Floating-point addition/subtraction instruction count */
 +						<0x0 0x140 0xffffffff 0xffffffff 0x78>, /* Floating-point multiplication instruction count */
 +						<0x0 0x150 0xffffffff 0xffffffff 0x78>, /* Floating-point fused multiply-add instruction count */
 +						<0x0 0x160 0xffffffff 0xffffffff 0x78>, /* Floating-point division or square-root instruction count */
@@ -105,9 +102,11 @@ index 8cfa08c..6864bd9 100644
 +						<0x0 0x151 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for Main ITLB fill data */
 +						<0x0 0x161 0xffffffff 0xffffffff 0x78>, /* Pipeline stall cycles caused by Main DTLB miss */
 +						<0x0 0x171 0xffffffff 0xffffffff 0x78>, /* Hardware prefetch bus access */
-+						<0x0 0x181 0xffffffff 0xffffffff 0x78>, /* Cycles waiting for source operand ready in the integer register file scoreboard */
 +						<0x0 0x02 0xffffffff 0xffffffff 0x78>, /* Misprediction of conditional branches */
 +						<0x0 0x12 0xffffffff 0xffffffff 0x78>, /* Misprediction of taken conditional branches */
 +						<0x0 0x22 0xffffffff 0xffffffff 0x78>; /* Misprediction of targets of Return instructions */
 +};
 +```
+-- 
+2.34.1
+

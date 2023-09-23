@@ -1,7 +1,7 @@
-From 9855deacf95c88cc45268565a52a214df8cd78ab Mon Sep 17 00:00:00 2001
+From 107c2d66dc34debc96dfe878a237552e1dbbecd9 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 14:00:03 +0800
-Subject: [PATCH] platform: andes: Add Andes custom PMU support
+Subject: [PATCH v2 04/12] platform: andes: Add Andes custom PMU support
 
 Before the ratification of Sscofpmf, the Andes PMU extension was
 designed to support the sampling and filtering of hardware performance
@@ -12,14 +12,14 @@ This patch implements the PMU extension platform callback and PMU device
 callbacks to update the corresponding custom CSRs.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 Upstream-Status: Pending
-
 ---
- platform/generic/andes/Kconfig             |  4 +
- platform/generic/andes/andes_pmu.c         | 85 ++++++++++++++++++++++
+ platform/generic/andes/Kconfig             |  4 ++
+ platform/generic/andes/andes_pmu.c         | 81 ++++++++++++++++++++++
  platform/generic/andes/objects.mk          |  1 +
- platform/generic/include/andes/andes_pmu.h | 12 +++
- 4 files changed, 102 insertions(+)
+ platform/generic/include/andes/andes_pmu.h | 11 +++
+ 4 files changed, 97 insertions(+)
  create mode 100644 platform/generic/andes/andes_pmu.c
  create mode 100644 platform/generic/include/andes/andes_pmu.h
 
@@ -37,14 +37,13 @@ index a91fb9c..056327b 100644
 +	default n
 diff --git a/platform/generic/andes/andes_pmu.c b/platform/generic/andes/andes_pmu.c
 new file mode 100644
-index 0000000..61c2da8
+index 0000000..09844ff
 --- /dev/null
 +++ b/platform/generic/andes/andes_pmu.c
-@@ -0,0 +1,85 @@
+@@ -0,0 +1,81 @@
 +// SPDX-License-Identifier: BSD-2-Clause
 +/*
-+ * Copyright (C) 2022 Andes Technology Corporation
-+ *
++ * Copyright (C) 2023 Andes Technology Corporation
 + */
 +#include <andes/andes45.h>
 +#include <andes/andes_pmu.h>
@@ -74,17 +73,15 @@ index 0000000..61c2da8
 +
 +static void andes_hw_counter_filter_mode(unsigned long flags, int ctr_idx)
 +{
-+	if (!flags) {
-+		csr_write(CSR_MCOUNTERMASK_S, 0);
-+		csr_write(CSR_MCOUNTERMASK_U, 0);
-+	}
 +	if (flags & SBI_PMU_CFG_FLAG_SET_UINH) {
-+		csr_clear(CSR_MCOUNTERMASK_S, BIT(ctr_idx));
 +		csr_set(CSR_MCOUNTERMASK_U, BIT(ctr_idx));
++	} else {
++		csr_clear(CSR_MCOUNTERMASK_U, BIT(ctr_idx));
 +	}
 +	if (flags & SBI_PMU_CFG_FLAG_SET_SINH) {
 +		csr_set(CSR_MCOUNTERMASK_S, BIT(ctr_idx));
-+		csr_clear(CSR_MCOUNTERMASK_U, BIT(ctr_idx));
++	} else {
++		csr_clear(CSR_MCOUNTERMASK_S, BIT(ctr_idx));
 +	}
 +}
 +
@@ -93,36 +90,35 @@ index 0000000..61c2da8
 +	.hw_counter_enable_irq  = andes_hw_counter_enable_irq,
 +	.hw_counter_disable_irq = andes_hw_counter_disable_irq,
 +	/*
-+	 * In andes_pmu_extensions_init(), we set mslideleg[18] for each
-+	 * hart instead of mideleg, so leave hw_counter_irq_bit() hook
-+	 * unimplemented.
++	 * We set delegation via 18 bit on mslideleg instead of mideleg,
++	 * so leave hw_counter_irq_bit() callback unimplemented.
 +	 */
 +	.hw_counter_irq_bit     = NULL,
 +	.hw_counter_filter_mode = andes_hw_counter_filter_mode
 +};
 +
-+int andes_pmu_extensions_init(const struct fdt_match *match,
-+			      struct sbi_hart_features *hfeatures)
++int andes_pmu_init(void)
 +{
-+	if (andes_pmu()) {
-+		/*
-+		 * It is not rational for a hardware to support
-+		 * both Andes PMU and standard Sscofpmf, as they
-+		 * serve the same purpose.
-+		 */
-+		if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
-+					   SBI_HART_EXT_SSCOFPMF))
-+			ebreak();
++	if (!has_andes_pmu())
++		return SBI_ENOTSUPP;
 +
-+		/* Machine counter write enable */
-+		csr_write(CSR_MCOUNTERWEN, 0xfffffffd);
-+		/* disable machine counter in M-mode */
-+		csr_write(CSR_MCOUNTERMASK_M, 0xfffffffd);
-+		/* delegate S-mode local interrupt to S-mode */
-+		csr_write(CSR_MSLIDELEG, MIP_PMOVI);
++	/*
++	 * It is not reasonable for an Andes CPU to support
++	 * both Andes PMU and standard Sscofpmf, as they
++	 * serve the same purpose.
++	 */
++	if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
++				   SBI_HART_EXT_SSCOFPMF))
++		return SBI_EINVAL;
 +
-+		sbi_pmu_set_device(&andes_pmu);
-+	}
++	/* Enable S-mode write permission */
++	csr_write(CSR_MCOUNTERWEN, 0xfffffffd);
++	/* Inhibit HPM counter in M-mode */
++	csr_write(CSR_MCOUNTERMASK_M, 0xfffffffd);
++	/* Delegate S-mode local interrupt to S-mode */
++	csr_write(CSR_MSLIDELEG, MIP_PMOVI);
++
++	sbi_pmu_set_device(&andes_pmu);
 +
 +	return 0;
 +}
@@ -137,10 +133,10 @@ index e8f86ea..6a8c66c 100644
 +platform-objs-$(CONFIG_ANDES_PMU) += andes/andes_pmu.o
 diff --git a/platform/generic/include/andes/andes_pmu.h b/platform/generic/include/andes/andes_pmu.h
 new file mode 100644
-index 0000000..8a2e136
+index 0000000..f97c22f
 --- /dev/null
 +++ b/platform/generic/include/andes/andes_pmu.h
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,11 @@
 +// SPDX-License-Identifier: BSD-2-Clause
 +
 +#ifndef _RISCV_ANDES_PMU_H
@@ -149,7 +145,9 @@ index 0000000..8a2e136
 +#include <sbi/sbi_hart.h>
 +#include <sbi_utils/fdt/fdt_helper.h>
 +
-+int andes_pmu_extensions_init(const struct fdt_match *match,
-+			      struct sbi_hart_features *hfeatures);
++int andes_pmu_init(void);
 +
 +#endif /* _RISCV_ANDES_PMU_H */
+-- 
+2.34.1
+

@@ -1,0 +1,74 @@
+From e073eaaf389f306520e1d6dd520f8ca1cea133e7 Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Sun, 3 Sep 2023 14:01:49 +0800
+Subject: [PATCH v2 06/12] platform: rzfive: Enable Andes PMU for RZ/Five
+
+Enable Andes PMU extension support for RZ/Five.
+
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
+Upstream-Status: Pending
+---
+ platform/generic/Kconfig                 |  1 +
+ platform/generic/renesas/rzfive/rzfive.c | 16 ++++++++++++++++
+ 2 files changed, 17 insertions(+)
+
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index 16c28fe..e6e7e94 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -38,6 +38,7 @@ config PLATFORM_RENESAS_RZFIVE
+ 	bool "Renesas RZ/Five support"
+ 	select ANDES45_PMA
+ 	select ANDES_SBI
++	select ANDES_PMU
+ 	default n
+ 
+ config PLATFORM_SIFIVE_FU540
+diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+index 68a69fe..e05bb52 100644
+--- a/platform/generic/renesas/rzfive/rzfive.c
++++ b/platform/generic/renesas/rzfive/rzfive.c
+@@ -5,11 +5,13 @@
+  */
+ 
+ #include <andes/andes45_pma.h>
++#include <andes/andes_pmu.h>
+ #include <andes/andes_sbi.h>
+ #include <andes/andes45.h>
+ #include <sbi/riscv_asm.h>
+ #include <platform_override.h>
+ #include <sbi/sbi_domain.h>
++#include <sbi/sbi_error.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ 
+ static const struct andes45_pma_region renesas_rzfive_pma_regions[] = {
+@@ -57,6 +59,19 @@ int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
+ 					    SBI_DOMAIN_MEMREGION_M_RWX);
+ }
+ 
++static int renesas_rzfive_extensions_init(const struct fdt_match *match,
++			  struct sbi_hart_features *hfeatures)
++{
++	int rc;
++	rc = andes_pmu_init();
++	if (rc && rc != SBI_ENOTSUPP)
++		return rc;
++
++	// Add pmu fixup here
++
++	return 0;
++}
++
+ static const struct fdt_match renesas_rzfive_match[] = {
+ 	{ .compatible = "renesas,r9a07g043f01" },
+ 	{ .compatible = "renesas,rzf" },
+@@ -68,4 +83,5 @@ const struct platform_override renesas_rzfive = {
+ 	.early_init = renesas_rzfive_early_init,
+ 	.final_init = renesas_rzfive_final_init,
+ 	.vendor_ext_provider = andes_sbi_vendor_ext_provider,
++	.extensions_init = renesas_rzfive_extensions_init,
+ };
+-- 
+2.34.1
+
