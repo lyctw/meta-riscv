@@ -40,8 +40,8 @@ local_conf_header:
     SDKMACHINE = "x86_64"
     # Use 'haveged' instead 'rng-tools' due to 'SIGSEGV' error during start 'rngd'
     PACKAGE_EXCLUDE:append = " rng-tools"
-    IMAGE_INSTALL:append = " haveged"
-    IMAGE_INSTALL:append = " packagegroup-core-buildessential glibc-staticdev vim htop tmux file"
+    IMAGE_INSTALL:append = " haveged dtc e2fsprogs-resize2fs"
+    IMAGE_INSTALL:append = " packagegroup-core-buildessential glibc-staticdev vim htop tmux file git"
     # Perf
     EXTRA_IMAGE_FEATURES = "debug-tweaks tools-profile"
     #EXTRA_IMAGE_FEATURES = "debug-tweaks tools-profile dbg-pkgs"
@@ -51,6 +51,10 @@ local_conf_header:
         ssh-server-openssh \
         debug-tweaks \
     "
+    # gdb
+    EXTRA_IMAGE_FEATURES += " tools-debug"
+    # RPM
+    EXTRA_IMAGE_FEATURES += " package-management"
   diskmon: |
     BB_DISKMON_DIRS = "\
         STOPTASKS,${TMPDIR},1G,100K \
