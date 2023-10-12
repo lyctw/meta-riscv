@@ -14,17 +14,19 @@ SRC_URI:append:tinker-v-rzfive = " \
     file://0001-lib-serial-Add-compatible-string-for-renesas_scif.patch \
     file://0002-platform-rzfive-Add-platform-compatible-string.patch \
     file://0003-rzfive-enable-caches.patch \
-    file://v2-0001-sbi-sbi_pmu-Handle-errors-reported-by-sbi_platfor.patch \
-    file://v2-0002-sbi-sbi_pmu-Add-hw_counter_filter_mode-to-pmu-dev.patch \
-    file://v2-0003-platform-include-andes45-Add-PMU-related-CSR-defi.patch \
-    file://v2-0004-platform-andes-Add-Andes-custom-PMU-support.patch \
-    file://v2-0005-platform-andes-Enable-Andes-PMU-for-AE350.patch \
-    file://v2-0006-platform-rzfive-Enable-Andes-PMU-for-RZ-Five.patch \
-    file://v2-0007-docs-pmu-Add-Andes-PMU-node-example.patch \
-    file://v2-0008-WIP.patch \
-    file://v2-0009-DROP-disable-SEMIHOSTING.patch \
-    file://v2-0010-DROP-Print-entries-at-boot-time.patch \
-    file://v2-0011-DROP-FW_TEXT_START-0x0.patch \
+    file://v4-0001-sbi-sbi_pmu-Handle-errors-reported-by-sbi_platfor.patch \
+    file://v4-0002-sbi-sbi_pmu-Add-hw_counter_filter_mode-to-pmu-dev.patch \
+    file://v4-0003-platform-include-andes45-Add-PMU-related-CSR-defi.patch \
+    file://v4-0004-platform-andes-Add-Andes-custom-PMU-support.patch \
+    file://v4-0005-platform-andes-Enable-Andes-PMU-for-AE350.patch \
+    file://v4-0006-platform-rzfive-Enable-Andes-PMU-for-RZ-Five.patch \
+    file://v4-0007-docs-pmu-Add-Andes-PMU-node-example.patch \
+    file://v4-0008-WIP.patch \
+    file://v4-0009-Add-xandespmu-node-if-missing.patch \
+    file://v4-0010-TESTING-don-t-grant-write.patch \
+    file://v4-0011-DROP-disable-SEMIHOSTING.patch \
+    file://v4-0012-DROP-Print-entries-at-boot-time.patch \
+    file://v4-0013-Don-t-remove-pmu-node.patch \
 "
 
 #    file://0001-DO-NOT-REVIEW-Add-fdt-pmu-debug-messsages.patch

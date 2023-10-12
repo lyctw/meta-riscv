@@ -1,7 +1,7 @@
-From 8db22da5ea41bcba666e32b22501df5168587ab4 Mon Sep 17 00:00:00 2001
+From 5d821476ceedea8a9f4b1ada705704d8a96af64f Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 14:01:22 +0800
-Subject: [PATCH v2 05/12] platform: andes: Enable Andes PMU for AE350
+Subject: [PATCH v4 05/13] platform: andes: Enable Andes PMU for AE350
 
 Enable Andes PMU extension support for AE350 platforms.
 

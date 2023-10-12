@@ -1,0 +1,82 @@
+From 5427e605400946f5c95bcc967f67b560c7ec53de Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Thu, 12 Oct 2023 10:15:56 +0800
+Subject: [PATCH v4 09/13] Add xandespmu node if missing
+
+Upstream-Status: Pending
+---
+ platform/generic/andes/andes_pmu.c | 42 ++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
+
+diff --git a/platform/generic/andes/andes_pmu.c b/platform/generic/andes/andes_pmu.c
+index 09844ff..01b8064 100644
+--- a/platform/generic/andes/andes_pmu.c
++++ b/platform/generic/andes/andes_pmu.c
+@@ -8,6 +8,7 @@
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_pmu.h>
+ #include <sbi/sbi_scratch.h>
++#include <libfdt.h>
+ 
+ static void andes_hw_counter_enable_irq(uint32_t ctr_idx)
+ {
+@@ -54,8 +55,45 @@ static struct sbi_pmu_device andes_pmu = {
+ 	.hw_counter_filter_mode = andes_hw_counter_filter_mode
+ };
+ 
++static int fdt_add_cpu_andes_pmu_ext(void)
++{
++	int cpu_node, cpus_node, err;
++	void *fdt = fdt_get_address();
++
++	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
++	if (err < 0)
++		return err;
++
++	cpus_node = fdt_path_offset(fdt, "/cpus");
++	if (cpus_node < 0)
++		return cpus_node;
++
++	fdt_for_each_subnode(cpu_node, fdt, cpus_node) {
++		const char *device_type;
++
++		/* Only process child nodes with device_type = "cpu". */
++		device_type = fdt_getprop(fdt, cpu_node, "device_type", NULL);
++		if (!device_type || strcmp(device_type, "cpu"))
++			continue;
++
++		/* Skip nodes with xandespmu */
++		if (fdt_stringlist_search(fdt, cpu_node, "riscv,isa-extensions",
++					  "xandespmu") > 0)
++			continue;
++
++		err = fdt_appendprop_string(fdt, cpu_node, "riscv,isa-extensions",
++					    "xandespmu");
++		if (err < 0)
++			return err;
++	}
++
++	return 0;
++}
++
+ int andes_pmu_init(void)
+ {
++	int rc;
++
+ 	if (!has_andes_pmu())
+ 		return SBI_ENOTSUPP;
+ 
+@@ -68,6 +106,10 @@ int andes_pmu_init(void)
+ 				   SBI_HART_EXT_SSCOFPMF))
+ 		return SBI_EINVAL;
+ 
++	rc = fdt_add_cpu_andes_pmu_ext();
++	if (rc)
++		return rc;
++
+ 	/* Enable S-mode write permission */
+ 	csr_write(CSR_MCOUNTERWEN, 0xfffffffd);
+ 	/* Inhibit HPM counter in M-mode */
+-- 
+2.34.1
+

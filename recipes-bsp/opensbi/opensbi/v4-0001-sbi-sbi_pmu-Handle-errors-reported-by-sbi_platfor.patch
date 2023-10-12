@@ -1,7 +1,7 @@
-From 3da6f833b149d3b703d61b1bdbb8f0d09d138191 Mon Sep 17 00:00:00 2001
+From 5c2c5a0b03e13d506cbc886e422649b411f889f7 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sat, 23 Sep 2023 19:36:37 +0800
-Subject: [PATCH v2 01/12] sbi: sbi_pmu: Handle errors reported by
+Subject: [PATCH v4 01/13] sbi: sbi_pmu: Handle errors reported by
  sbi_platform_pmu_init()
 
 sbi_platform_pmu_init() returns a negative error code on failure,

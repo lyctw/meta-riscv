@@ -1,7 +1,7 @@
-From e073eaaf389f306520e1d6dd520f8ca1cea133e7 Mon Sep 17 00:00:00 2001
+From 756080686fe6e9a25d368bb0e271b24585589884 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 14:01:49 +0800
-Subject: [PATCH v2 06/12] platform: rzfive: Enable Andes PMU for RZ/Five
+Subject: [PATCH v4 06/13] platform: rzfive: Enable Andes PMU for RZ/Five
 
 Enable Andes PMU extension support for RZ/Five.
 

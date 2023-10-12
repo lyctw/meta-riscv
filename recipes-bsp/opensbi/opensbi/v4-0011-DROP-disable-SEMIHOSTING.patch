@@ -1,7 +1,7 @@
-From f560b740b00ca292cff4df029880ca45baa9edb1 Mon Sep 17 00:00:00 2001
+From b88c94f77facd19cf033ae4d51ce730270054c05 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Mon, 18 Sep 2023 16:50:09 +0800
-Subject: [PATCH v2 09/12] !!!DROP!!! disable SEMIHOSTING
+Subject: [PATCH v4 11/13] !!!DROP!!! disable SEMIHOSTING
 
 Upstream-Status: Pending
 ---

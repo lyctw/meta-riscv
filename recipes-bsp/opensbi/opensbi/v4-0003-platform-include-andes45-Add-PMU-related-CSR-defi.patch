@@ -1,7 +1,7 @@
-From 176e7744aff3d9c6f8857e2e110d00966bf343ed Mon Sep 17 00:00:00 2001
+From 3c587a519feccd06e3d08cf2e7207215331eff47 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 13:57:40 +0800
-Subject: [PATCH v2 03/12] platform: include: andes45: Add PMU related CSR
+Subject: [PATCH v4 03/13] platform: include: andes45: Add PMU related CSR
  defines
 
 This patch adds CSR for Andes PMU extension.

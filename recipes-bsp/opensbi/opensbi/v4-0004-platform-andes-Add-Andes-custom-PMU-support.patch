@@ -1,7 +1,7 @@
-From 107c2d66dc34debc96dfe878a237552e1dbbecd9 Mon Sep 17 00:00:00 2001
+From a0b8ad9fa71303046f6826c8d60dea03a4c75eec Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 14:00:03 +0800
-Subject: [PATCH v2 04/12] platform: andes: Add Andes custom PMU support
+Subject: [PATCH v4 04/13] platform: andes: Add Andes custom PMU support
 
 Before the ratification of Sscofpmf, the Andes PMU extension was
 designed to support the sampling and filtering of hardware performance

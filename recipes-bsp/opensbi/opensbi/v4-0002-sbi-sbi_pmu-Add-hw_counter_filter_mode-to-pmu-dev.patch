@@ -1,7 +1,7 @@
-From 7bf28de4e37ba55e53f7603b0d85d1e6c1a9fc98 Mon Sep 17 00:00:00 2001
+From 0128fbe47eeaa38ba7301157d9e50b19e48196a4 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 13:56:39 +0800
-Subject: [PATCH v2 02/12] sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu
+Subject: [PATCH v4 02/13] sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu
  device
 
 Add support for custom PMU extensions to set inhibit bits
