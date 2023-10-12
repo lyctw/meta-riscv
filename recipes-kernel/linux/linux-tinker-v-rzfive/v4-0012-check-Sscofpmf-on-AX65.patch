@@ -1,0 +1,26 @@
+From 745020e5ce02f5c13d2b9b31119eb1ce0cf1cd43 Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Thu, 5 Oct 2023 18:04:46 +0800
+Subject: [PATCH v4 12/18] check Sscofpmf on AX65
+
+---
+ drivers/perf/riscv_pmu_sbi.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/perf/riscv_pmu_sbi.c b/drivers/perf/riscv_pmu_sbi.c
+index b95dccf5a6ea..4c02c0da0975 100644
+--- a/drivers/perf/riscv_pmu_sbi.c
++++ b/drivers/perf/riscv_pmu_sbi.c
+@@ -1001,6 +1001,9 @@ void __init_or_module riscv_pmu_patch_func(struct alt_entry *begin,
+ 	void *oldptr, *altptr;
+ 	u16 vendor_id = sbi_get_mvendorid();
+ 
++	if (riscv_isa_extension_available(NULL, SSCOFPMF)) // Check this on AX65
++		return;
++
+ 	if (stage == RISCV_ALTERNATIVES_EARLY_BOOT)
+ 		return;
+ 
+-- 
+2.34.1
+

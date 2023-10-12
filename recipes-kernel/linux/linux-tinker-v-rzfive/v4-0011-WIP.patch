@@ -1,0 +1,464 @@
+From 85266841d90de19a7d118c41dae346ec7653c496 Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Thu, 5 Oct 2023 17:12:28 +0800
+Subject: [PATCH v4 11/18] WIP
+
+---
+ arch/riscv/Kconfig.errata                   | 27 --------
+ arch/riscv/errata/andes/errata.c            | 45 +------------
+ arch/riscv/errata/thead/errata.c            | 19 ------
+ arch/riscv/include/asm/alternative-macros.h |  2 +-
+ arch/riscv/include/asm/alternative.h        |  5 +-
+ arch/riscv/include/asm/errata_list.h        | 36 +---------
+ arch/riscv/kernel/alternative.c             |  2 +
+ drivers/irqchip/irq-riscv-intc.c            |  1 +
+ drivers/perf/Kconfig                        | 27 ++++++++
+ drivers/perf/Makefile                       |  3 +
+ drivers/perf/riscv_pmu_sbi.c                | 73 +++++++++++++++++++--
+ include/linux/irqchip/irq-riscv-intc.h      | 11 ++++
+ 12 files changed, 121 insertions(+), 130 deletions(-)
+ create mode 100644 include/linux/irqchip/irq-riscv-intc.h
+
+diff --git a/arch/riscv/Kconfig.errata b/arch/riscv/Kconfig.errata
+index 77ff2a3e76c3..b165a4e376d4 100644
+--- a/arch/riscv/Kconfig.errata
++++ b/arch/riscv/Kconfig.errata
+@@ -21,20 +21,6 @@ config ERRATA_ANDES_CMO
+ 
+ 	  If you don't know what to do here, say "Y".
+ 
+-config ERRATA_ANDES_PMU
+-	bool "Apply Andes PMU errata"
+-	depends on ERRATA_ANDES && RISCV_PMU_SBI
+-	default y
+-	help
+-	  The Andes cores include a set of CSRs that allow for the
+-	  control of performance counter overflow and privilege mode
+-	  filtering, similar to the SSCOFPMF extension.
+-
+-	  This will apply the PMU errata to handle the non-standard
+-	  behaviour via the regular SBI PMU driver and interface.
+-
+-	  If you don't know what to do here, say "Y".
+-
+ config ERRATA_SIFIVE
+ 	bool "SiFive errata"
+ 	depends on RISCV_ALTERNATIVE
+@@ -99,17 +85,4 @@ config ERRATA_THEAD_CMO
+ 
+ 	  If you don't know what to do here, say "Y".
+ 
+-config ERRATA_THEAD_PMU
+-	bool "Apply T-Head PMU errata"
+-	depends on ERRATA_THEAD && RISCV_PMU_SBI
+-	default y
+-	help
+-	  The T-Head C9xx cores implement a PMU overflow extension very
+-	  similar to the core SSCOFPMF extension.
+-
+-	  This will apply the overflow errata to handle the non-standard
+-	  behaviour via the regular SBI PMU driver and interface.
+-
+-	  If you don't know what to do here, say "Y".
+-
+ endmenu # "CPU errata selection"
+diff --git a/arch/riscv/errata/andes/errata.c b/arch/riscv/errata/andes/errata.c
+index 19256691f1ba..d2e1abcac967 100644
+--- a/arch/riscv/errata/andes/errata.c
++++ b/arch/riscv/errata/andes/errata.c
+@@ -56,54 +56,11 @@ static bool errata_probe_iocp(unsigned int stage, unsigned long arch_id, unsigne
+ 	return true;
+ }
+ 
+-static bool errata_probe_pmu(unsigned int stage,
+-			     unsigned long arch_id, unsigned long impid)
+-{
+-	if (!IS_ENABLED(CONFIG_ERRATA_ANDES_PMU))
+-		return false;
+-
+-	if ((arch_id & 0xff) != 0x45)
+-		return false;
+-
+-	if (stage == RISCV_ALTERNATIVES_EARLY_BOOT)
+-		return false;
+-
+-	return true;
+-}
+-
+-static u32 andes_errata_probe(unsigned int stage,
+-			      unsigned long archid, unsigned long impid)
+-{
+-	u32 cpu_req_errata = 0;
+-
+-	if (errata_probe_pmu(stage, archid, impid))
+-		cpu_req_errata |= BIT(ERRATA_ANDES_PMU);
+-
+-	return cpu_req_errata;
+-}
+-
+ void __init_or_module andes_errata_patch_func(struct alt_entry *begin, struct alt_entry *end,
+ 					      unsigned long archid, unsigned long impid,
+ 					      unsigned int stage)
+ {
+-	struct alt_entry *alt;
+-	u32 cpu_req_errata = andes_errata_probe(stage, archid, impid);
+-	u32 tmp;
+-
+ 	errata_probe_iocp(stage, archid, impid);
+ 
+-	for (alt = begin; alt < end; alt++) {
+-		if (alt->vendor_id != ANDES_VENDOR_ID)
+-			continue;
+-		if (alt->patch_id >= ERRATA_ANDES_NUMBER)
+-			continue;
+-
+-		tmp = (1U << alt->patch_id);
+-		if (cpu_req_errata & tmp) {
+-			mutex_lock(&text_mutex);
+-			patch_text_nosync(ALT_OLD_PTR(alt), ALT_ALT_PTR(alt),
+-					  alt->alt_len);
+-			mutex_unlock(&text_mutex);
+-		}
+-	}
++	/* we have nothing to patch here ATM so just return back */
+ }
+diff --git a/arch/riscv/errata/thead/errata.c b/arch/riscv/errata/thead/errata.c
+index be84b14f0118..b461c6b0fd6b 100644
+--- a/arch/riscv/errata/thead/errata.c
++++ b/arch/riscv/errata/thead/errata.c
+@@ -53,22 +53,6 @@ static bool errata_probe_cmo(unsigned int stage,
+ 	return true;
+ }
+ 
+-static bool errata_probe_pmu(unsigned int stage,
+-			     unsigned long arch_id, unsigned long impid)
+-{
+-	if (!IS_ENABLED(CONFIG_ERRATA_THEAD_PMU))
+-		return false;
+-
+-	/* target-c9xx cores report arch_id and impid as 0 */
+-	if (arch_id != 0 || impid != 0)
+-		return false;
+-
+-	if (stage == RISCV_ALTERNATIVES_EARLY_BOOT)
+-		return false;
+-
+-	return true;
+-}
+-
+ static u32 thead_errata_probe(unsigned int stage,
+ 			      unsigned long archid, unsigned long impid)
+ {
+@@ -80,9 +64,6 @@ static u32 thead_errata_probe(unsigned int stage,
+ 	if (errata_probe_cmo(stage, archid, impid))
+ 		cpu_req_errata |= BIT(ERRATA_THEAD_CMO);
+ 
+-	if (errata_probe_pmu(stage, archid, impid))
+-		cpu_req_errata |= BIT(ERRATA_THEAD_PMU);
+-
+ 	return cpu_req_errata;
+ }
+ 
+diff --git a/arch/riscv/include/asm/alternative-macros.h b/arch/riscv/include/asm/alternative-macros.h
+index 721ec275ce57..51450b037a12 100644
+--- a/arch/riscv/include/asm/alternative-macros.h
++++ b/arch/riscv/include/asm/alternative-macros.h
+@@ -144,7 +144,7 @@
+  * old_content: The old content which is probably replaced with new content.
+  * new_content: The new content.
+  * vendor_id: The CPU vendor ID.
+- * patch_id: The patch ID (erratum ID or cpufeature ID).
++ * patch_id: The patch ID (erratum ID, cpufeature ID or custom pmu ID).
+  * CONFIG_k: The Kconfig of this patch ID. When Kconfig is disabled, the old
+  *	     content will always be executed.
+  */
+diff --git a/arch/riscv/include/asm/alternative.h b/arch/riscv/include/asm/alternative.h
+index f6cfca939c92..1c10d82f1163 100644
+--- a/arch/riscv/include/asm/alternative.h
++++ b/arch/riscv/include/asm/alternative.h
+@@ -43,7 +43,7 @@ struct alt_entry {
+ 	s32 alt_offset;		/* offset relative to replacement instruction or data */
+ 	u16 vendor_id;		/* CPU vendor ID */
+ 	u16 alt_len;		/* The replacement size */
+-	u32 patch_id;		/* The patch ID (erratum ID or cpufeature ID) */
++	u32 patch_id;		/* The patch ID (erratum ID, cpufeature ID or pmu ID) */
+ };
+ 
+ void andes_errata_patch_func(struct alt_entry *begin, struct alt_entry *end,
+@@ -62,6 +62,9 @@ void thead_feature_probe_func(unsigned int cpu, unsigned long archid,
+ void riscv_cpufeature_patch_func(struct alt_entry *begin, struct alt_entry *end,
+ 				 unsigned int stage);
+ 
++void riscv_pmu_patch_func(struct alt_entry *begin, struct alt_entry *end,
++			  unsigned int stage);
++
+ #else /* CONFIG_RISCV_ALTERNATIVE */
+ 
+ static inline void probe_vendor_features(unsigned int cpu) { }
+diff --git a/arch/riscv/include/asm/errata_list.h b/arch/riscv/include/asm/errata_list.h
+index 87ff074d1b8d..3770910f4854 100644
+--- a/arch/riscv/include/asm/errata_list.h
++++ b/arch/riscv/include/asm/errata_list.h
+@@ -13,8 +13,7 @@
+ 
+ #ifdef CONFIG_ERRATA_ANDES
+ #define ERRATA_ANDES_NO_IOCP 0
+-#define ERRATA_ANDES_PMU 1
+-#define ERRATA_ANDES_NUMBER 2
++#define ERRATA_ANDES_NUMBER 1
+ #endif
+ 
+ #ifdef CONFIG_ERRATA_SIFIVE
+@@ -26,8 +25,7 @@
+ #ifdef CONFIG_ERRATA_THEAD
+ #define	ERRATA_THEAD_PBMT 0
+ #define	ERRATA_THEAD_CMO 1
+-#define	ERRATA_THEAD_PMU 2
+-#define	ERRATA_THEAD_NUMBER 3
++#define	ERRATA_THEAD_NUMBER 2
+ #endif
+ 
+ #ifdef __ASSEMBLY__
+@@ -148,36 +146,6 @@ asm volatile(ALTERNATIVE_2(						\
+ 	    "r"((unsigned long)(_start) + (_size))			\
+ 	: "a0")
+ 
+-#define THEAD_C9XX_RV_IRQ_PMU			17
+-#define THEAD_C9XX_CSR_SCOUNTEROF		0x5c5
+-
+-#define ANDES_RV_IRQ_PMU			18
+-#define ANDES_SLI_CAUSE_BASE			(BITS_PER_LONG << 2)
+-#define ANDES_CSR_SCOUNTEROF			0x9d4
+-#define ANDES_CSR_SLIE				0x9c4
+-#define ANDES_CSR_SLIP				0x9c5
+-
+-#define ALT_SBI_PMU_OVERFLOW(__ovl)					\
+-asm volatile(ALTERNATIVE_2(						\
+-	"csrr %0, " __stringify(CSR_SSCOUNTOVF),			\
+-	"csrr %0, " __stringify(THEAD_C9XX_CSR_SCOUNTEROF),		\
+-		THEAD_VENDOR_ID, ERRATA_THEAD_PMU,			\
+-		CONFIG_ERRATA_THEAD_PMU,				\
+-	"csrr %0, " __stringify(ANDES_CSR_SCOUNTEROF),			\
+-		ANDES_VENDOR_ID, ERRATA_ANDES_PMU,			\
+-		CONFIG_ERRATA_ANDES_PMU)				\
+-	: "=r" (__ovl) :						\
+-	: "memory")
+-
+-#define ALT_SBI_PMU_OVF_CLEAR_PENDING(__irq_mask)			\
+-asm volatile(ALTERNATIVE(						\
+-	"csrc " __stringify(CSR_IP) ", %0\n\t",				\
+-	"csrc " __stringify(ANDES_CSR_SLIP) ", %0\n\t",			\
+-		ANDES_VENDOR_ID, ERRATA_ANDES_PMU,			\
+-		CONFIG_ERRATA_ANDES_PMU)				\
+-	: : "r"(__irq_mask)						\
+-	: "memory")
+-
+ #endif /* __ASSEMBLY__ */
+ 
+ #endif
+diff --git a/arch/riscv/kernel/alternative.c b/arch/riscv/kernel/alternative.c
+index 339417c2531e..913897c244b3 100644
+--- a/arch/riscv/kernel/alternative.c
++++ b/arch/riscv/kernel/alternative.c
+@@ -177,6 +177,8 @@ static void __init_or_module _apply_alternatives(struct alt_entry *begin,
+ 
+ 	riscv_cpufeature_patch_func(begin, end, stage);
+ 
++	riscv_pmu_patch_func(begin, end, stage);
++
+ 	if (!cpu_mfr_info.patch_func)
+ 		return;
+ 
+diff --git a/drivers/irqchip/irq-riscv-intc.c b/drivers/irqchip/irq-riscv-intc.c
+index 99c483c70bdc..5fff927dbc76 100644
+--- a/drivers/irqchip/irq-riscv-intc.c
++++ b/drivers/irqchip/irq-riscv-intc.c
+@@ -13,6 +13,7 @@
+ #include <linux/irq.h>
+ #include <linux/irqchip.h>
+ #include <linux/irqdomain.h>
++#include <linux/irqchip/irq-riscv-intc.h>
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
+index f4572a5cca72..ab9fbcb83954 100644
+--- a/drivers/perf/Kconfig
++++ b/drivers/perf/Kconfig
+@@ -86,6 +86,33 @@ config RISCV_PMU_SBI
+ 	  full perf feature support i.e. counter overflow, privilege mode
+ 	  filtering, counter configuration.
+ 
++config ANDES_CUSTOM_PMU
++	bool "Andes custom PMU support"
++	depends on RISCV_ALTERNATIVE && RISCV_PMU_SBI
++	default y
++	help
++	  The Andes cores include a set of CSRs that allow for the
++	  control of performance counter overflow and privilege mode
++	  filtering, similar to the SSCOFPMF extension.
++
++	  This will apply the PMU errata to handle the non-standard
++	  behaviour via the regular SBI PMU driver and interface.
++
++	  If you don't know what to do here, say "Y".
++
++config THEAD_CUSTOM_PMU
++	bool "T-Head custom PMU support"
++	depends on RISCV_ALTERNATIVE && RISCV_PMU_SBI
++	default y
++	help
++	  The T-Head C9xx cores implement a PMU overflow extension very
++	  similar to the core SSCOFPMF extension.
++
++	  This will apply the overflow errata to handle the non-standard
++	  behaviour via the regular SBI PMU driver and interface.
++
++	  If you don't know what to do here, say "Y".
++
+ config ARM_PMU_ACPI
+ 	depends on ARM_PMU && ACPI
+ 	def_bool y
+diff --git a/drivers/perf/Makefile b/drivers/perf/Makefile
+index 16b3ec4db916..f2c6691bfa9d 100644
+--- a/drivers/perf/Makefile
++++ b/drivers/perf/Makefile
+@@ -1,4 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
++
++CFLAGS_riscv_pmu_sbi.o += -O0 -ggdb3
++
+ obj-$(CONFIG_ARM_CCI_PMU) += arm-cci.o
+ obj-$(CONFIG_ARM_CCN) += arm-ccn.o
+ obj-$(CONFIG_ARM_CMN) += arm-cmn.o
+diff --git a/drivers/perf/riscv_pmu_sbi.c b/drivers/perf/riscv_pmu_sbi.c
+index 74544cb4790a..b95dccf5a6ea 100644
+--- a/drivers/perf/riscv_pmu_sbi.c
++++ b/drivers/perf/riscv_pmu_sbi.c
+@@ -10,19 +10,55 @@
+ 
+ #define pr_fmt(fmt) "riscv-pmu-sbi: " fmt
+ 
++#include <linux/memory.h>
+ #include <linux/mod_devicetable.h>
+ #include <linux/perf/riscv_pmu.h>
+ #include <linux/platform_device.h>
+ #include <linux/irq.h>
+ #include <linux/irqdomain.h>
++#include <linux/irqchip/irq-riscv-intc.h>
+ #include <linux/of_irq.h>
+ #include <linux/of.h>
+ #include <linux/cpu_pm.h>
+ #include <linux/sched/clock.h>
+ 
+-#include <asm/errata_list.h>
+-#include <asm/sbi.h>
++#include <asm/alternative.h>
+ #include <asm/hwcap.h>
++#include <asm/patch.h>
++#include <asm/sbi.h>
++#include <asm/vendorid_list.h>
++
++#define PMU_PATCH_ID_THEAD	0
++#define PMU_PATCH_ID_ANDES	1
++#define PMU_PATCH_ID_MAX	2
++
++#define THEAD_C9XX_RV_IRQ_PMU		17
++#define THEAD_C9XX_CSR_SCOUNTEROF	0x5c5
++
++#define ANDES_RV_IRQ_PMU		18
++#define ANDES_CSR_SCOUNTEROF		0x9d4
++#define ANDES_CSR_SLIP			0x9c5
++
++#define ALT_SBI_PMU_OVERFLOW(__ovl)					\
++asm volatile(ALTERNATIVE_2(						\
++	"csrr %0, " __stringify(CSR_SSCOUNTOVF),			\
++	"csrr %0, " __stringify(THEAD_C9XX_CSR_SCOUNTEROF),		\
++		THEAD_VENDOR_ID, PMU_PATCH_ID_THEAD,			\
++		CONFIG_THEAD_CUSTOM_PMU,				\
++	"csrr %0, " __stringify(ANDES_CSR_SCOUNTEROF),			\
++		ANDES_VENDOR_ID, PMU_PATCH_ID_ANDES,			\
++		CONFIG_ANDES_CUSTOM_PMU)				\
++	: "=r" (__ovl) :						\
++	: "memory")
++
++#define ALT_SBI_PMU_OVF_CLEAR_PENDING(__irq_mask)			\
++asm volatile(ALTERNATIVE(						\
++	"csrc " __stringify(CSR_IP) ", %0\n\t",				\
++	"csrc " __stringify(ANDES_CSR_SLIP) ", %0\n\t",			\
++		ANDES_VENDOR_ID, PMU_PATCH_ID_ANDES,			\
++		CONFIG_ANDES_CUSTOM_PMU)				\
++	: : "r"(__irq_mask)						\
++	: "memory")
+ 
+ PMU_FORMAT_ATTR(event, "config:0-47");
+ PMU_FORMAT_ATTR(firmware, "config:63");
+@@ -743,13 +779,13 @@ static int pmu_sbi_setup_irqs(struct riscv_pmu *pmu, struct platform_device *pde
+ 	if (riscv_isa_extension_available(NULL, SSCOFPMF)) {
+ 		riscv_pmu_irq_num = RV_IRQ_PMU;
+ 		riscv_pmu_use_irq = true;
+-	} else if (IS_ENABLED(CONFIG_ERRATA_THEAD_PMU) &&
++	} else if (IS_ENABLED(CONFIG_THEAD_CUSTOM_PMU) &&
+ 		   riscv_cached_mvendorid(0) == THEAD_VENDOR_ID &&
+ 		   riscv_cached_marchid(0) == 0 &&
+ 		   riscv_cached_mimpid(0) == 0) {
+ 		riscv_pmu_irq_num = THEAD_C9XX_RV_IRQ_PMU;
+ 		riscv_pmu_use_irq = true;
+-	} else if (IS_ENABLED(CONFIG_ERRATA_ANDES_PMU) &&
++	} else if (IS_ENABLED(CONFIG_ANDES_CUSTOM_PMU) &&
+ 		   riscv_cached_mvendorid(0) == ANDES_VENDOR_ID) {
+ 		riscv_pmu_irq_num = ANDES_SLI_CAUSE_BASE + ANDES_RV_IRQ_PMU;
+ 		riscv_pmu_use_irq = true;
+@@ -955,3 +991,32 @@ static int __init pmu_sbi_devinit(void)
+ 	return ret;
+ }
+ device_initcall(pmu_sbi_devinit)
++
++#ifdef CONFIG_RISCV_ALTERNATIVE
++void __init_or_module riscv_pmu_patch_func(struct alt_entry *begin,
++					   struct alt_entry *end,
++					   unsigned int stage)
++{
++	struct alt_entry *alt;
++	void *oldptr, *altptr;
++	u16 vendor_id = sbi_get_mvendorid();
++
++	if (stage == RISCV_ALTERNATIVES_EARLY_BOOT)
++		return;
++
++	for (alt = begin; alt < end; alt++) {
++		if (alt->vendor_id != vendor_id)
++			continue;
++
++		if (alt->patch_id >= PMU_PATCH_ID_MAX)
++			continue;
++
++		oldptr = ALT_OLD_PTR(alt);
++		altptr = ALT_ALT_PTR(alt);
++
++		mutex_lock(&text_mutex);
++		patch_text_nosync(oldptr, altptr, alt->alt_len);
++		mutex_unlock(&text_mutex);
++	}
++}
++#endif
+diff --git a/include/linux/irqchip/irq-riscv-intc.h b/include/linux/irqchip/irq-riscv-intc.h
+new file mode 100644
+index 000000000000..7dda7dc34a63
+--- /dev/null
++++ b/include/linux/irqchip/irq-riscv-intc.h
+@@ -0,0 +1,11 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * Copyright (C) 2023 Andes Technology Corporation
++ */
++#ifndef __INCLUDE_LINUX_IRQCHIP_IRQ_RISCV_INTC_H
++#define __INCLUDE_LINUX_IRQCHIP_IRQ_RISCV_INTC_H
++
++#define ANDES_SLI_CAUSE_BASE	(BITS_PER_LONG << 2)
++#define ANDES_CSR_SLIE		0x9c4
++
++#endif /* __INCLUDE_LINUX_IRQCHIP_IRQ_RISCV_INTC_H */
+-- 
+2.34.1
+

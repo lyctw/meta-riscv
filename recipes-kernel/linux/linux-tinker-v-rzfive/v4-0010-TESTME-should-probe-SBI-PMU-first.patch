@@ -1,0 +1,28 @@
+From 6a45c431c58d8a646a231181ddcf0e4570250adb Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Wed, 4 Oct 2023 17:01:07 +0800
+Subject: [PATCH v4 10/18] !!!TESTME!!! should probe SBI PMU first
+
+---
+ drivers/perf/riscv_pmu_sbi.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/perf/riscv_pmu_sbi.c b/drivers/perf/riscv_pmu_sbi.c
+index 15e867c36e43..74544cb4790a 100644
+--- a/drivers/perf/riscv_pmu_sbi.c
++++ b/drivers/perf/riscv_pmu_sbi.c
+@@ -849,7 +849,11 @@ static int pmu_sbi_device_probe(struct platform_device *pdev)
+ 	int ret = -ENODEV;
+ 	int num_counters;
+ 
++	if (!sbi_probe_extension(SBI_EXT_PMU))
++		return -ENOTSUPP;
++
+ 	pr_info("SBI PMU extension is available\n");
++
+ 	pmu = riscv_pmu_alloc();
+ 	if (!pmu)
+ 		return -ENOMEM;
+-- 
+2.34.1
+

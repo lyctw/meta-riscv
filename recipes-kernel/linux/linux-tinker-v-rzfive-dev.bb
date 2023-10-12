@@ -12,15 +12,24 @@ FORK ?= "prabhakarlad"
 
 SRC_URI = "git://github.com/${FORK}/linux.git;protocol=https;branch=${BRANCH} \
            file://0001-riscv-dts-Add-Tinker-V-dts.patch \
-           file://v2-0001-riscv-errata-Rename-defines-for-Andes.patch \
-           file://v2-0002-irqchip-riscv-intc-Allow-large-non-standard-hwirq.patch \
-           file://v2-0003-irqchip-riscv-intc-Add-Andes-irq-chip.patch \
-           file://v2-0004-add-andes-cpu-intc.patch \
-           file://v2-0005-Documentations-cpus.yaml-Add-andestech-cpu-intc.patch \
-           file://v2-0006-perf-RISC-V-Eliminate-redundant-IRQ-enable-disabl.patch \
-           file://v2-0007-riscv-errata-Add-Andes-PMU-errata.patch \
-           file://0004-riscv-andes-Support-symbolic-FW-and-HW-raw-events.patch \
-           file://0001-DROP-set-1KHz-freq-for-perf-record-top.patch \
+           file://v4-0001-riscv-errata-Rename-defines-for-Andes.patch \
+           file://v4-0002-irqchip-riscv-intc-Allow-large-non-standard-hwirq.patch \
+           file://v4-0003-irqchip-riscv-intc-Introduce-Andes-IRQ-chip.patch \
+           file://v4-0004-riscv-dts-renesas-r9a07g043f-Update-compatible-st.patch \
+           file://v4-0005-dt-bindings-riscv-Add-andestech-cpu-intc-to-inter.patch \
+           file://v4-0006-perf-RISC-V-Eliminate-redundant-IRQ-enable-disabl.patch \
+           file://v4-0007-riscv-errata-Add-Andes-PMU-errata.patch \
+           file://v4-0008-riscv-andes-Support-symbolic-FW-and-HW-raw-events.patch \
+           file://v4-0009-DROP-net-andes-ftmac100-Andes-support-for-Faraday.patch \
+           file://v4-0010-TESTME-should-probe-SBI-PMU-first.patch \
+           file://v4-0011-WIP.patch \
+           file://v4-0012-check-Sscofpmf-on-AX65.patch \
+           file://v4-0013-riscv_pmu_sbi-fdt-based-probe.patch \
+           file://v4-0014-Revert-riscv_pmu_sbi-fdt-based-probe.patch \
+           file://v4-0015-WIP-good.patch \
+           file://v4-0016-FIXUP-cleanups.patch \
+           file://v4-0017-DROP-Monitoring-scounterinten.patch \
+           file://v4-0018-DROP-lower-freq-of-top-record.patch \
            file://set-mmap-min-addr.cfg \
            "
 

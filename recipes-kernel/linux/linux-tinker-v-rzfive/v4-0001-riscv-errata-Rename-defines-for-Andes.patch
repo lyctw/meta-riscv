@@ -1,7 +1,7 @@
-From 8b06c809e15a01c1e4ee5d7cfbf294a38b4a4e32 Mon Sep 17 00:00:00 2001
+From b716ee1340013393eeefd692218fa08590792971 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sat, 26 Aug 2023 15:29:53 +0800
-Subject: [PATCH v2 1/8] riscv: errata: Rename defines for Andes
+Subject: [PATCH v4 01/18] riscv: errata: Rename defines for Andes
 
 Using "ANDES" rather than "ANDESTECH" to unify the naming
 convention with OpenSBI and U-Boot, and reduce the number
@@ -81,11 +81,11 @@ index e55407ace0c3..2f2bb0c84f9a 100644
  #define THEAD_VENDOR_ID		0x5b7
  
 diff --git a/arch/riscv/kernel/alternative.c b/arch/riscv/kernel/alternative.c
-index 319a1da0358b..0128b161bfda 100644
+index b0345992a35e..339417c2531e 100644
 --- a/arch/riscv/kernel/alternative.c
 +++ b/arch/riscv/kernel/alternative.c
-@@ -43,7 +43,7 @@ static void riscv_fill_cpu_mfr_info(struct cpu_manufacturer_info_t *cpu_mfr_info
- 
+@@ -46,7 +46,7 @@ static void riscv_fill_cpu_mfr_info(struct cpu_manufacturer_info_t *cpu_mfr_info
+ 	cpu_mfr_info->feature_probe_func = NULL;
  	switch (cpu_mfr_info->vendor_id) {
  #ifdef CONFIG_ERRATA_ANDES
 -	case ANDESTECH_VENDOR_ID:

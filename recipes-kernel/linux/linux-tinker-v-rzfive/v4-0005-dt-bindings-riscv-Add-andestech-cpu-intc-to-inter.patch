@@ -1,8 +1,13 @@
-From 72d3f29764792180f05a8b0b801ce584c9002041 Mon Sep 17 00:00:00 2001
+From 7d80f9754ed52d27b7b9bdc46925cb0535f36221 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 10 Sep 2023 17:36:59 +0800
-Subject: [PATCH v2 5/8] Documentations: cpus.yaml: Add andestech,cpu-intc
+Subject: [PATCH v4 05/18] dt-bindings: riscv: Add andestech,cpu-intc to
+ interrupt-controller
 
+Add "andestech,cpu-intc" compatible string for Andes INTC which
+provides Andes-specific IRQ chip functions.
+
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 ---
  Documentation/devicetree/bindings/riscv/cpus.yaml | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)

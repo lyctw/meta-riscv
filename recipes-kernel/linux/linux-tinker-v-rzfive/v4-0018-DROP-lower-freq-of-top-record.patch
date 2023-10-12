@@ -1,7 +1,7 @@
-From 0dacfa9b453759f849cba5f3b76aa24a53d787f1 Mon Sep 17 00:00:00 2001
+From 685c37bfa55c487c3fbdbb77a2330353e9cd294d Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Wed, 6 Sep 2023 15:24:25 +0800
-Subject: [PATCH] DROP set 1KHz freq for perf record/top
+Date: Wed, 11 Oct 2023 17:26:01 +0800
+Subject: [PATCH v4 18/18] !!!DROP!!! lower freq of top/record
 
 ---
  tools/perf/builtin-record.c | 2 +-
@@ -22,7 +22,7 @@ index aec18db7ff23..4055e0a1bb81 100644
  			.uses_mmap   = true,
  			.default_per_cpu = true,
 diff --git a/tools/perf/builtin-top.c b/tools/perf/builtin-top.c
-index 1baa2acb3ced..a7d85004a55c 100644
+index 1baa2acb3ced..4d205e97072a 100644
 --- a/tools/perf/builtin-top.c
 +++ b/tools/perf/builtin-top.c
 @@ -1433,7 +1433,7 @@ int cmd_top(int argc, const char **argv)
@@ -30,7 +30,7 @@ index 1baa2acb3ced..a7d85004a55c 100644
  			.user_freq	= UINT_MAX,
  			.user_interval	= ULLONG_MAX,
 -			.freq		= 4000, /* 4 KHz */
-+			.freq		= 1000, /* 1 KHz */
++			.freq		= 1000, /* 4 KHz */
  			.target		= {
  				.uses_mmap   = true,
  			},

@@ -1,0 +1,94 @@
+From 32629621c0b4ec3e8dcfaa6fcad50e084b07e8da Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Sat, 7 Oct 2023 16:50:59 +0800
+Subject: [PATCH v4 16/18] !!!FIXUP!!! cleanups
+
+---
+ arch/riscv/include/asm/alternative.h |  2 --
+ arch/riscv/kernel/Makefile           |  2 +-
+ arch/riscv/kernel/alternative.c      |  2 --
+ drivers/perf/riscv_pmu_sbi.c         | 32 ----------------------------
+ 4 files changed, 1 insertion(+), 37 deletions(-)
+
+diff --git a/arch/riscv/include/asm/alternative.h b/arch/riscv/include/asm/alternative.h
+index 0a845e172912..120a853583a1 100644
+--- a/arch/riscv/include/asm/alternative.h
++++ b/arch/riscv/include/asm/alternative.h
+@@ -62,8 +62,6 @@ void thead_feature_probe_func(unsigned int cpu, unsigned long archid,
+ void riscv_cpufeature_patch_func(struct alt_entry *begin, struct alt_entry *end,
+ 				 unsigned int stage);
+ 
+-//void riscv_pmu_patch_func(struct alt_entry *begin, struct alt_entry *end,
+-//			  unsigned int stage);
+ 
+ #else /* CONFIG_RISCV_ALTERNATIVE */
+ 
+diff --git a/arch/riscv/kernel/Makefile b/arch/riscv/kernel/Makefile
+index bf756aa041ca..506cc4a9a45a 100644
+--- a/arch/riscv/kernel/Makefile
++++ b/arch/riscv/kernel/Makefile
+@@ -18,7 +18,7 @@ endif
+ # cmodel=medany and notrace when patching early
+ ifdef CONFIG_RISCV_ALTERNATIVE_EARLY
+ CFLAGS_alternative.o := -mcmodel=medany
+-CFLAGS_cpufeature.o := -mcmodel=medany -O0 -ggdb3
++CFLAGS_cpufeature.o := -mcmodel=medany
+ ifdef CONFIG_FTRACE
+ CFLAGS_REMOVE_alternative.o = $(CC_FLAGS_FTRACE)
+ CFLAGS_REMOVE_cpufeature.o = $(CC_FLAGS_FTRACE)
+diff --git a/arch/riscv/kernel/alternative.c b/arch/riscv/kernel/alternative.c
+index 5633457fe1d1..339417c2531e 100644
+--- a/arch/riscv/kernel/alternative.c
++++ b/arch/riscv/kernel/alternative.c
+@@ -177,8 +177,6 @@ static void __init_or_module _apply_alternatives(struct alt_entry *begin,
+ 
+ 	riscv_cpufeature_patch_func(begin, end, stage);
+ 
+-	//riscv_pmu_patch_func(begin, end, stage);
+-
+ 	if (!cpu_mfr_info.patch_func)
+ 		return;
+ 
+diff --git a/drivers/perf/riscv_pmu_sbi.c b/drivers/perf/riscv_pmu_sbi.c
+index 5ec30515f9b4..319e8ee11d38 100644
+--- a/drivers/perf/riscv_pmu_sbi.c
++++ b/drivers/perf/riscv_pmu_sbi.c
+@@ -989,35 +989,3 @@ static int __init pmu_sbi_devinit(void)
+ 	return ret;
+ }
+ device_initcall(pmu_sbi_devinit)
+-
+-//#ifdef CONFIG_RISCV_ALTERNATIVE
+-//void __init_or_module riscv_pmu_patch_func(struct alt_entry *begin,
+-//					   struct alt_entry *end,
+-//					   unsigned int stage)
+-//{
+-//	struct alt_entry *alt;
+-//	void *oldptr, *altptr;
+-//	u16 vendor_id = sbi_get_mvendorid();
+-//
+-//	if (riscv_isa_extension_available(NULL, SSCOFPMF)) // Check this on AX65
+-//		return;
+-//
+-//	if (stage == RISCV_ALTERNATIVES_EARLY_BOOT)
+-//		return;
+-//
+-//	for (alt = begin; alt < end; alt++) {
+-//		if (alt->vendor_id != vendor_id)
+-//			continue;
+-//
+-//		if (alt->patch_id >= PMU_PATCH_ID_MAX)
+-//			continue;
+-//
+-//		oldptr = ALT_OLD_PTR(alt);
+-//		altptr = ALT_ALT_PTR(alt);
+-//
+-//		mutex_lock(&text_mutex);
+-//		patch_text_nosync(oldptr, altptr, alt->alt_len);
+-//		mutex_unlock(&text_mutex);
+-//	}
+-//}
+-//#endif
+-- 
+2.34.1
+

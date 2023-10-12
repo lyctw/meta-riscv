@@ -1,7 +1,7 @@
-From 391f1238d03dd5c83b35577d454feda700f9f816 Mon Sep 17 00:00:00 2001
+From b3e0ac66c8534181ceeeeac3c5dd7f6baea24326 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sat, 2 Sep 2023 17:23:30 +0800
-Subject: [PATCH v2 7/8] riscv: errata: Add Andes PMU errata
+Subject: [PATCH v4 07/18] riscv: errata: Add Andes PMU errata
 
 This patch introduces a CPU errata that aims to support perf
 event sampling and mode filtering on Andes 45-series CPUs.
@@ -154,10 +154,10 @@ index 56ab40e64092..87ff074d1b8d 100644
  
  #endif
 diff --git a/drivers/perf/riscv_pmu_sbi.c b/drivers/perf/riscv_pmu_sbi.c
-index e3fecb142fa0..80cebd95dd00 100644
+index 91a6feab038d..15e867c36e43 100644
 --- a/drivers/perf/riscv_pmu_sbi.c
 +++ b/drivers/perf/riscv_pmu_sbi.c
-@@ -61,6 +61,7 @@ static int sysctl_perf_user_access __read_mostly = SYSCTL_USER_ACCESS;
+@@ -50,6 +50,7 @@ static const struct attribute_group *riscv_pmu_attr_groups[] = {
  static union sbi_pmu_ctr_info *pmu_ctr_list;
  static bool riscv_pmu_use_irq;
  static unsigned int riscv_pmu_irq_num;
@@ -165,7 +165,7 @@ index e3fecb142fa0..80cebd95dd00 100644
  static unsigned int riscv_pmu_irq;
  
  /* Cache the available counters in a bitmask */
-@@ -687,7 +688,7 @@ static irqreturn_t pmu_sbi_ovf_handler(int irq, void *dev)
+@@ -631,7 +632,7 @@ static irqreturn_t pmu_sbi_ovf_handler(int irq, void *dev)
  	fidx = find_first_bit(cpu_hw_evt->used_hw_ctrs, RISCV_MAX_COUNTERS);
  	event = cpu_hw_evt->events[fidx];
  	if (!event) {
@@ -174,7 +174,7 @@ index e3fecb142fa0..80cebd95dd00 100644
  		return IRQ_NONE;
  	}
  
-@@ -701,7 +702,7 @@ static irqreturn_t pmu_sbi_ovf_handler(int irq, void *dev)
+@@ -645,7 +646,7 @@ static irqreturn_t pmu_sbi_ovf_handler(int irq, void *dev)
  	 * Overflow interrupt pending bit should only be cleared after stopping
  	 * all the counters to avoid any race condition.
  	 */
@@ -183,7 +183,7 @@ index e3fecb142fa0..80cebd95dd00 100644
  
  	/* No overflow bit is set */
  	if (!overflow)
-@@ -773,7 +774,7 @@ static int pmu_sbi_starting_cpu(unsigned int cpu, struct hlist_node *node)
+@@ -714,7 +715,7 @@ static int pmu_sbi_starting_cpu(unsigned int cpu, struct hlist_node *node)
  
  	if (riscv_pmu_use_irq) {
  		cpu_hw_evt->irq = riscv_pmu_irq;
@@ -192,7 +192,7 @@ index e3fecb142fa0..80cebd95dd00 100644
  		enable_percpu_irq(riscv_pmu_irq, IRQ_TYPE_NONE);
  	}
  
-@@ -807,6 +808,10 @@ static int pmu_sbi_setup_irqs(struct riscv_pmu *pmu, struct platform_device *pde
+@@ -748,6 +749,10 @@ static int pmu_sbi_setup_irqs(struct riscv_pmu *pmu, struct platform_device *pde
  		   riscv_cached_mimpid(0) == 0) {
  		riscv_pmu_irq_num = THEAD_C9XX_RV_IRQ_PMU;
  		riscv_pmu_use_irq = true;
@@ -203,7 +203,7 @@ index e3fecb142fa0..80cebd95dd00 100644
  	}
  
  	if (!riscv_pmu_use_irq)
-@@ -819,6 +824,8 @@ static int pmu_sbi_setup_irqs(struct riscv_pmu *pmu, struct platform_device *pde
+@@ -760,6 +765,8 @@ static int pmu_sbi_setup_irqs(struct riscv_pmu *pmu, struct platform_device *pde
  		return -ENODEV;
  	}
  

@@ -1,7 +1,7 @@
-From 14aad4aa3bad36b36a1624dc8de135c949a4f036 Mon Sep 17 00:00:00 2001
+From a3a6c457493ba0a22d1e3570dd37b685b95a7337 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Mon, 11 Sep 2023 13:28:12 +0800
-Subject: [PATCH v2 2/8] irqchip/riscv-intc: Allow large non-standard hwirq
+Subject: [PATCH v4 02/18] irqchip/riscv-intc: Allow large non-standard hwirq
  number
 
 Currently, the implementation of the RISC-V INTC driver uses the

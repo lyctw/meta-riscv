@@ -1,0 +1,26 @@
+From c98dc691e7a7f4835b4c83bcb9979653d0695c70 Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Wed, 11 Oct 2023 17:25:32 +0800
+Subject: [PATCH v4 17/18] !!!DROP!!! Monitoring scounterinten
+
+---
+ drivers/perf/riscv_pmu_sbi.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/perf/riscv_pmu_sbi.c b/drivers/perf/riscv_pmu_sbi.c
+index 319e8ee11d38..283060cffcdf 100644
+--- a/drivers/perf/riscv_pmu_sbi.c
++++ b/drivers/perf/riscv_pmu_sbi.c
+@@ -721,6 +721,9 @@ static irqreturn_t pmu_sbi_ovf_handler(int irq, void *dev)
+ 			 * TODO: We will need to stop the guest counters once
+ 			 * virtualization support is added.
+ 			 */
++			unsigned long scounterinten = csr_read(0x9CF);
++			if (scounterinten)
++				pr_warn("@@@@@@ SCOUNTERINTEN: %ld\n", scounterinten);
+ 			perf_event_overflow(event, &data, regs);
+ 		}
+ 	}
+-- 
+2.34.1
+
