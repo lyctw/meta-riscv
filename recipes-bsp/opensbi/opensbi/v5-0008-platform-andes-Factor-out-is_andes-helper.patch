@@ -1,0 +1,73 @@
+From e6ff157f3dcddc7c3cf393e0dca1dda26a7b6a4e Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Wed, 18 Oct 2023 14:30:20 +0800
+Subject: [PATCH v5 08/12] platform: andes: Factor out is_andes() helper
+
+We will need is_andes(45) in the following patch,
+so factor out the code to parse marchid to make it
+reusable for checking any Andes CPU variants.
+
+Also improves the comment in ae350_hart_start().
+
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Upstream-Status: Pending
+---
+ platform/generic/andes/ae350.c           | 15 ++++++---------
+ platform/generic/include/andes/andes45.h |  6 ++++++
+ 2 files changed, 12 insertions(+), 9 deletions(-)
+
+diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
+index c3f280d..16e6283 100644
+--- a/platform/generic/andes/ae350.c
++++ b/platform/generic/andes/ae350.c
+@@ -24,16 +24,13 @@ static struct smu_data smu = { 0 };
+ extern void __ae350_enable_coherency_warmboot(void);
+ extern void __ae350_disable_coherency(void);
+ 
+-static __always_inline bool is_andes25(void)
+-{
+-	ulong marchid = csr_read(CSR_MARCHID);
+-	return !!(EXTRACT_FIELD(marchid, CSR_MARCHID_MICROID) == 0xa25);
+-}
+-
+ static int ae350_hart_start(u32 hartid, ulong saddr)
+ {
+-	/* Don't send wakeup command at boot-time */
+-	if (!sbi_init_count(hartid) || (is_andes25() && hartid == 0))
++	/*
++	 * Don't send wakeup command at boot-time or the
++	 * target hart is non-sleepable 25-series hart0
++	 */
++	if (!sbi_init_count(hartid) || (is_andes(25) && hartid == 0))
+ 		return sbi_ipi_raw_send(sbi_hartid_to_hartindex(hartid));
+ 
+ 	/* Write wakeup command to the sleep hart */
+@@ -52,7 +49,7 @@ static int ae350_hart_stop(void)
+ 	 * L2-cache, instead of turning it off, it should fall
+ 	 * through and jump to warmboot_addr.
+ 	 */
+-	if (is_andes25() && hartid == 0)
++	if (is_andes(25) && hartid == 0)
+ 		return SBI_ENOTSUPP;
+ 
+ 	if (!smu_support_sleep_mode(&smu, DEEPSLEEP_MODE, hartid))
+diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
+index ce31617..01f63d4 100644
+--- a/platform/generic/include/andes/andes45.h
++++ b/platform/generic/include/andes/andes45.h
+@@ -43,6 +43,12 @@
+ 
+ #ifndef __ASSEMBLER__
+ 
++#define is_andes(series)				\
++({							\
++	char value = csr_read(CSR_MARCHID) & 0xff;	\
++	(series) == (value >> 4) * 10 + (value & 0x0f);	\
++})
++
+ #define has_andes_pmu()					\
+ ({							\
+ 	(((csr_read(CSR_MMSC_CFG) &			\
+-- 
+2.34.1
+

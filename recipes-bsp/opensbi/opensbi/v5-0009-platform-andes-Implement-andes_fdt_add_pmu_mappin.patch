@@ -1,25 +1,28 @@
-From 3a39bd50d2fac36cbdd8bbb5137ee89334cc4146 Mon Sep 17 00:00:00 2001
+From f5747de9599b618d681db1627ba137964994c69b Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Sat, 23 Sep 2023 19:57:16 +0800
-Subject: [PATCH v4 08/13] WIP
+Date: Wed, 18 Oct 2023 14:30:36 +0800
+Subject: [PATCH v5 09/12] platform: andes: Implement
+ andes_fdt_add_pmu_mappings platform override
 
+Implement the andes_fdt_add_pmu_mappings() callback, which creates PMU
+node properties that will later be populated with mapping tables.
+
+Currently we only support 45-series event mappings.
+
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 Upstream-Status: Pending
 ---
- include/sbi/sbi_ecall_interface.h            |   5 +
- include/sbi_utils/fdt/fdt_fixup.h            |  48 +++
- lib/utils/fdt/fdt_fixup.c                    |  93 +++++
- platform/generic/Kconfig                     |   2 +
- platform/generic/andes/Kconfig               |   6 +-
- platform/generic/andes/ae350.c               |   2 +
- platform/generic/andes/andes45_hpm.c         | 373 +++++++++++++++++++
- platform/generic/andes/objects.mk            |   1 +
- platform/generic/include/andes/andes45_hpm.h |  75 ++++
- platform/generic/include/platform_override.h |   1 +
- platform/generic/platform.c                  |  12 +-
- platform/generic/renesas/rzfive/rzfive.c     |   4 +-
- 12 files changed, 619 insertions(+), 3 deletions(-)
- create mode 100644 platform/generic/andes/andes45_hpm.c
- create mode 100644 platform/generic/include/andes/andes45_hpm.h
+ include/sbi/sbi_ecall_interface.h          |   5 +
+ platform/generic/Kconfig                   |   2 +
+ platform/generic/andes/Kconfig             |   7 +
+ platform/generic/andes/ae350.c             |   2 +
+ platform/generic/andes/andes_hpm.c         | 381 +++++++++++++++++++++
+ platform/generic/andes/objects.mk          |   1 +
+ platform/generic/include/andes/andes_hpm.h |  83 +++++
+ platform/generic/renesas/rzfive/rzfive.c   |   2 +
+ 8 files changed, 483 insertions(+)
+ create mode 100644 platform/generic/andes/andes_hpm.c
+ create mode 100644 platform/generic/include/andes/andes_hpm.h
 
 diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
 index 1fe469e..89187e7 100644
@@ -37,241 +40,80 @@ index 1fe469e..89187e7 100644
  /**
   * Special "firmware" events provided by the OpenSBI, even if the hardware
   * does not support performance events. These events are encoded as a raw
-diff --git a/include/sbi_utils/fdt/fdt_fixup.h b/include/sbi_utils/fdt/fdt_fixup.h
-index ecd55a7..36cd3bc 100644
---- a/include/sbi_utils/fdt/fdt_fixup.h
-+++ b/include/sbi_utils/fdt/fdt_fixup.h
-@@ -19,6 +19,54 @@ struct sbi_cpu_idle_state {
- 	uint32_t wakeup_latency_us;
- };
- 
-+/**
-+ * struct sbi_event_select - Describes event to select mapping
-+ */
-+struct sbi_pmu_event_select_map {
-+	/**
-+	 * The description of an entry in
-+	 * riscv,event-to-mhpmevent property
-+	 */
-+	uint32_t eidx;
-+	uint64_t select;
-+};
-+
-+struct sbi_pmu_event_counter_map {
-+	/**
-+	 * The description of an entry in
-+	 * riscv,event-to-mhpmcounters property
-+	 */
-+	uint32_t eidx_start;
-+	uint32_t eidx_end;
-+	uint32_t ctr_map;
-+};
-+
-+struct sbi_pmu_raw_event_counter_map {
-+	/**
-+	 * The description of an entry in
-+	 * riscv,raw-event-to-mhpmcounters property
-+	 */
-+	uint64_t select;
-+	uint64_t select_mask;
-+	uint32_t ctr_map;
-+};
-+
-+/**
-+ * Add PMU properties in the DT
-+ *
-+ * Add information about event to selector/counter mappings to the
-+ * devicetree.
-+ *
-+ * @param fdt: device tree blob
-+ * @param selects:
-+ * @param counters:
-+ * @param rcounters:
-+ * @return zero on success and -ve on failure
-+ */
-+int fdt_add_pmu_mappings(void *fdt, const struct sbi_pmu_event_select_map *selects,
-+		const struct sbi_pmu_event_counter_map *counters,
-+		const struct sbi_pmu_raw_event_counter_map *rcounters);
-+
- /**
-  * Add CPU idle states to cpu nodes in the DT
-  *
-diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-index e213ded..f3a1a8e 100644
---- a/lib/utils/fdt/fdt_fixup.c
-+++ b/lib/utils/fdt/fdt_fixup.c
-@@ -20,6 +20,99 @@
- #include <sbi_utils/fdt/fdt_pmu.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- 
-+int fdt_add_pmu_mappings(void *fdt, const struct sbi_pmu_event_select_map *selects,
-+		const struct sbi_pmu_event_counter_map *counters,
-+		const struct sbi_pmu_raw_event_counter_map *rcounters)
-+{
-+	int i, err, pmu_noff, root_noff;
-+	const char *comp;
-+	fdt32_t evt_to_mhpmevent[3];
-+	fdt32_t evt_to_mhpmcounters[3];
-+	fdt32_t raw_evt_to_mhpmcounters[5];
-+
-+	/* Try to locate pmu node */
-+	pmu_noff = fdt_path_offset(fdt, "/pmu");
-+
-+	if (pmu_noff > 0) {
-+		/*
-+		 * If compatible string is "riscv,pmu",
-+		 * we assume a valid pmu node has been
-+		 * provided.
-+		 */
-+		comp = fdt_getprop(fdt, pmu_noff, "compatible", NULL);
-+		if (comp && !strcmp(comp, "riscv,pmu"))
-+			return 0;
-+		else
-+			return -FDT_ERR_BADVALUE;
-+	}
-+
-+	if (pmu_noff < 0 && pmu_noff != -FDT_ERR_NOTFOUND)
-+		return pmu_noff;
-+
-+	/*
-+	 * Create pmu node based on given selects/counters/rcounters
-+	 */
-+	root_noff = fdt_path_offset(fdt, "/");
-+	pmu_noff = fdt_add_subnode(fdt, root_noff, "pmu");
-+	if  (pmu_noff < 0)
-+		return pmu_noff;
-+
-+	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 1024);
-+	if (err < 0)
-+		return err;
-+
-+	/**
-+	 * If "riscv,event-to-mhpmevent" is present, "riscv,event-to-mhpmcounters" must be
-+	 * provided as well.
-+	 */
-+	if (selects && (counters == NULL))
-+		return SBI_EINVAL;
-+
-+	err = fdt_setprop_string(fdt, pmu_noff, "compatible", "riscv,pmu");
-+	if (err)
-+		return err;
-+
-+	/* Add riscv,event-to-mhpmevent */
-+	for (i = 0; selects && selects[i].eidx; i++) {
-+		evt_to_mhpmevent[0] = cpu_to_fdt32(selects[i].eidx);
-+		evt_to_mhpmevent[1] = cpu_to_fdt32(selects[i].select >> 32);
-+		evt_to_mhpmevent[2] = cpu_to_fdt32(selects[i].select & ~0UL);
-+		err = fdt_appendprop(fdt, pmu_noff, "riscv,event-to-mhpmevent",
-+				evt_to_mhpmevent, 3 * sizeof(fdt32_t));
-+		if (err)
-+			return err;
-+	}
-+
-+	/* Add riscv,event-to-mhpmcounters */
-+	for (i = 0; counters && counters[i].eidx_start; i++) {
-+		evt_to_mhpmcounters[0] = cpu_to_fdt32(counters[i].eidx_start);
-+		evt_to_mhpmcounters[1] = cpu_to_fdt32(counters[i].eidx_end);
-+		evt_to_mhpmcounters[2] = cpu_to_fdt32(counters[i].ctr_map);
-+		err = fdt_appendprop(fdt, pmu_noff, "riscv,event-to-mhpmcounters",
-+				evt_to_mhpmcounters, 3 * sizeof(fdt32_t));
-+		if (err)
-+			return err;
-+	}
-+
-+	if (!rcounters)
-+		return 0;
-+
-+	/* Add riscv,raw-event-to-mhpmcounters */
-+	for (i = 0; rcounters && rcounters[i].select; i++) {
-+		raw_evt_to_mhpmcounters[0] = cpu_to_fdt32(rcounters[i].select >> 32);
-+		raw_evt_to_mhpmcounters[1] = cpu_to_fdt32(rcounters[i].select & ~0UL);
-+		raw_evt_to_mhpmcounters[2] = cpu_to_fdt32(rcounters[i].select_mask >> 32);
-+		raw_evt_to_mhpmcounters[3] = cpu_to_fdt32(rcounters[i].select_mask & ~0UL);
-+		raw_evt_to_mhpmcounters[4] = cpu_to_fdt32(rcounters[i].ctr_map);
-+		err = fdt_appendprop(fdt, pmu_noff, "riscv,raw-event-to-mhpmcounters",
-+				raw_evt_to_mhpmcounters, 5 * sizeof(fdt32_t));
-+		if (err)
-+			return err;
-+	}
-+
-+	return 0;
-+}
-+
- int fdt_add_cpu_idle_states(void *fdt, const struct sbi_cpu_idle_state *state)
- {
- 	int cpu_node, cpus_node, err, idle_states_node;
 diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index e6e7e94..1295db1 100644
+index d6dafef..fbcd870 100644
 --- a/platform/generic/Kconfig
 +++ b/platform/generic/Kconfig
-@@ -32,6 +32,7 @@ config PLATFORM_ANDES_AE350
+@@ -31,6 +31,7 @@ config PLATFORM_ALLWINNER_D1
+ config PLATFORM_ANDES_AE350
  	bool "Andes AE350 support"
  	select SYS_ATCSMU
++	select ANDES_HPM
  	select ANDES_PMU
-+	select ANDES45_HPM
  	default n
  
- config PLATFORM_RENESAS_RZFIVE
-@@ -39,6 +40,7 @@ config PLATFORM_RENESAS_RZFIVE
+@@ -38,6 +39,7 @@ config PLATFORM_RENESAS_RZFIVE
+ 	bool "Renesas RZ/Five support"
  	select ANDES45_PMA
  	select ANDES_SBI
++	select ANDES_HPM
  	select ANDES_PMU
-+	select ANDES45_HPM
  	default n
  
- config PLATFORM_SIFIVE_FU540
 diff --git a/platform/generic/andes/Kconfig b/platform/generic/andes/Kconfig
-index 056327b..06da2ed 100644
+index 555e4fe..8af2704 100644
 --- a/platform/generic/andes/Kconfig
 +++ b/platform/generic/andes/Kconfig
-@@ -9,5 +9,9 @@ config ANDES_SBI
+@@ -8,6 +8,13 @@ config ANDES_SBI
+ 	bool "Andes SBI support"
  	default n
  
- config ANDES_PMU
--	bool "Andes PMU support"
-+	bool "Andes custom PMU extension support"
++config ANDES_HPM
++	bool "Andes HPM support"
 +	default n
++	help
++	  This provides Andes platform override for creating
++	  event to counter mappings in pmu node.
 +
-+config ANDES45_HPM
-+	bool "Andes HPM support (45-series)"
+ config ANDES_PMU
+ 	bool "Andes custom PMU extension support"
  	default n
 diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
-index bbc257b..3674bbe 100644
+index 16e6283..0d410c2 100644
 --- a/platform/generic/andes/ae350.c
 +++ b/platform/generic/andes/ae350.c
 @@ -19,6 +19,7 @@
  #include <sbi/sbi_ipi.h>
  #include <sbi/sbi_init.h>
  #include <andes/andes45.h>
-+#include <andes/andes45_hpm.h>
++#include <andes/andes_hpm.h>
  
  static struct smu_data smu = { 0 };
  extern void __ae350_enable_coherency_warmboot(void);
-@@ -130,5 +131,6 @@ static const struct fdt_match andes_ae350_match[] = {
+@@ -127,5 +128,6 @@ static const struct fdt_match andes_ae350_match[] = {
  const struct platform_override andes_ae350 = {
  	.match_table = andes_ae350_match,
  	.final_init  = ae350_final_init,
-+	.fdt_add_pmu_mappings = andes45_fdt_add_pmu_mappings,
++	.fdt_add_pmu_mappings = andes_fdt_add_pmu_mappings,
  	.extensions_init = ae350_extensions_init,
  };
-diff --git a/platform/generic/andes/andes45_hpm.c b/platform/generic/andes/andes45_hpm.c
+diff --git a/platform/generic/andes/andes_hpm.c b/platform/generic/andes/andes_hpm.c
 new file mode 100644
-index 0000000..8203b0c
+index 0000000..f9e6d2e
 --- /dev/null
-+++ b/platform/generic/andes/andes45_hpm.c
-@@ -0,0 +1,373 @@
++++ b/platform/generic/andes/andes_hpm.c
+@@ -0,0 +1,381 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
 + * Copyright (c) 2023 Andes Technology Corporation
 + */
 +
-+#include <andes/andes45_hpm.h>
++#include <andes/andes45.h>
++#include <andes/andes_hpm.h>
 +#include <sbi/riscv_asm.h>
 +#include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_types.h>
 +#include <sbi_utils/fdt/fdt_fixup.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
 +
 +static const struct sbi_pmu_event_select_map andes45_hw_evt_selects[] = {
 +	/* Hardware general events (Type #0) */
@@ -628,34 +470,43 @@ index 0000000..8203b0c
 +	{ /* sentinel */ }
 +};
 +
-+int andes45_fdt_add_pmu_mappings(void *fdt, const struct fdt_match *match)
++int andes_fdt_add_pmu_mappings(void *fdt, const struct fdt_match *match)
 +{
-+	return fdt_add_pmu_mappings(fdt, andes45_hw_evt_selects, andes45_hw_evt_counters,
-+			   andes45_raw_evt_counters);
++	/*
++	 * At the moment, simply create mapping for any 45-series core
++	 * based on marchid, we may check and differentiate the mapping
++	 * by mimpid.
++	 */
++	if (is_andes(45))
++		return fdt_add_pmu_mappings(fdt, andes45_hw_evt_selects,
++					    andes45_hw_evt_counters,
++					    andes45_raw_evt_counters);
++
++	return 0;
 +}
 diff --git a/platform/generic/andes/objects.mk b/platform/generic/andes/objects.mk
-index 6a8c66c..ca4722e 100644
+index 6a8c66c..57caaf6 100644
 --- a/platform/generic/andes/objects.mk
 +++ b/platform/generic/andes/objects.mk
 @@ -8,3 +8,4 @@ platform-objs-$(CONFIG_PLATFORM_ANDES_AE350) += andes/ae350.o andes/sleep.o
  platform-objs-$(CONFIG_ANDES45_PMA) += andes/andes45-pma.o
  platform-objs-$(CONFIG_ANDES_SBI) += andes/andes_sbi.o
  platform-objs-$(CONFIG_ANDES_PMU) += andes/andes_pmu.o
-+platform-objs-$(CONFIG_ANDES45_HPM) += andes/andes45_hpm.o
-diff --git a/platform/generic/include/andes/andes45_hpm.h b/platform/generic/include/andes/andes45_hpm.h
++platform-objs-$(CONFIG_ANDES_HPM) += andes/andes_hpm.o
+diff --git a/platform/generic/include/andes/andes_hpm.h b/platform/generic/include/andes/andes_hpm.h
 new file mode 100644
-index 0000000..01f8681
+index 0000000..0f301db
 --- /dev/null
-+++ b/platform/generic/include/andes/andes45_hpm.h
-@@ -0,0 +1,75 @@
++++ b/platform/generic/include/andes/andes_hpm.h
+@@ -0,0 +1,83 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
 + * Copyright (c) 2023 Andes Technology Corporation
 + */
 +
-+#ifndef _ANDES45_HPM_H_
-+#define _ANDES45_HPM_H_
++#ifndef _ANDES_HPM_H_
++#define _ANDES_HPM_H_
 +
 +#include <sbi_utils/fdt/fdt_helper.h>
 +
@@ -720,70 +571,34 @@ index 0000000..01f8681
 +#define ANDES_MISPREDICT_TAKE_CONDITION_BR	0x12
 +#define ANDES_MISPREDICT_TARGET_RET_INST	0x22
 +
-+int andes45_fdt_add_pmu_mappings(void *fdt, const struct fdt_match *match);
++#ifdef CONFIG_ANDES_HPM
 +
-+#endif /* _ANDES45_HPM_H_ */
-diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-index bf4b112..bd34d2a 100644
---- a/platform/generic/include/platform_override.h
-+++ b/platform/generic/include/platform_override.h
-@@ -19,6 +19,7 @@ struct platform_override {
- 	u64 (*features)(const struct fdt_match *match);
- 	u64 (*tlbr_flush_limit)(const struct fdt_match *match);
- 	u32 (*tlb_num_entries)(const struct fdt_match *match);
-+	int (*fdt_add_pmu_mappings)(void *fdt, const struct fdt_match *match);
- 	bool (*cold_boot_allowed)(u32 hartid, const struct fdt_match *match);
- 	int (*early_init)(bool cold_boot, const struct fdt_match *match);
- 	int (*final_init)(bool cold_boot, const struct fdt_match *match);
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 66a0b77..53a3ea0 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -265,7 +265,17 @@ static u32 generic_tlb_num_entries(void)
- 
- static int generic_pmu_init(void)
- {
--	return fdt_pmu_setup(fdt_get_address());
-+	void *fdt = fdt_get_address();
-+	int rc;
++int andes_fdt_add_pmu_mappings(void *fdt, const struct fdt_match *match);
 +
-+	if (generic_plat && generic_plat->fdt_add_pmu_mappings) {
-+		rc = generic_plat->fdt_add_pmu_mappings(fdt,
-+							generic_plat_match);
-+		if (rc)
-+			return rc;
-+	}
++#else
 +
-+	return fdt_pmu_setup(fdt);
- }
- 
- static uint64_t generic_pmu_xlate_to_mhpmevent(uint32_t event_idx,
++int andes_fdt_add_pmu_mappings(void *fdt, const struct fdt_match *match) { return 0; }
++
++#endif /* CONFIG_ANDES_HPM */
++
++#endif /* _ANDES_HPM_H_ */
 diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
-index e05bb52..703eb7e 100644
+index 51420c1..9d59509 100644
 --- a/platform/generic/renesas/rzfive/rzfive.c
 +++ b/platform/generic/renesas/rzfive/rzfive.c
-@@ -4,6 +4,7 @@
-  *
+@@ -5,6 +5,7 @@
   */
  
-+#include <andes/andes45_hpm.h>
  #include <andes/andes45_pma.h>
++#include <andes/andes_hpm.h>
  #include <andes/andes_pmu.h>
  #include <andes/andes_sbi.h>
-@@ -40,7 +41,7 @@ static void enable_caches(void)
- 	*(unsigned long *)L2C_CTR = 0x979;
- }
- 
--int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
-+static int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
- {
- 	enable_caches();
- 	/*
-@@ -82,6 +83,7 @@ const struct platform_override renesas_rzfive = {
+ #include <andes/andes45.h>
+@@ -80,6 +81,7 @@ const struct platform_override renesas_rzfive = {
  	.match_table = renesas_rzfive_match,
  	.early_init = renesas_rzfive_early_init,
  	.final_init = renesas_rzfive_final_init,
-+	.fdt_add_pmu_mappings = andes45_fdt_add_pmu_mappings,
++	.fdt_add_pmu_mappings = andes_fdt_add_pmu_mappings,
  	.vendor_ext_provider = andes_sbi_vendor_ext_provider,
  	.extensions_init = renesas_rzfive_extensions_init,
  };

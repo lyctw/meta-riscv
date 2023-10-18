@@ -1,7 +1,7 @@
-From 1ceecec1118d256d67eed3a940f8b07e7425e0fe Mon Sep 17 00:00:00 2001
+From f79f596e74c857b093d4c41e38c328fddb753752 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Mon, 18 Sep 2023 16:50:25 +0800
-Subject: [PATCH v4 12/13] !!!DROP!!! Print entries at boot-time
+Subject: [PATCH v5 12/12] !!!DROP!!! Print entries at boot-time
 
 Upstream-Status: Pending
 ---
@@ -9,7 +9,7 @@ Upstream-Status: Pending
  1 file changed, 22 insertions(+), 15 deletions(-)
 
 diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
-index 83301bb..7029e6c 100644
+index a8d7648..ffdbb8f 100644
 --- a/lib/utils/fdt/fdt_pmu.c
 +++ b/lib/utils/fdt/fdt_pmu.c
 @@ -11,6 +11,7 @@

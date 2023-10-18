@@ -1,7 +1,7 @@
-From f34558e55f804e6a9e2c1985d1a8bfa49e2536ee Mon Sep 17 00:00:00 2001
+From 24638ad32b3c61e691e5d6ef0139536edb715090 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 14:08:01 +0800
-Subject: [PATCH v4 07/13] docs: pmu: Add Andes PMU node example
+Subject: [PATCH v5 10/12] docs: pmu: Add Andes PMU node example
 
 Add PMU node example for event index to counter index mapping
 and selector value translation of Andes' CPUs.
