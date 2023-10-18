@@ -1,12 +1,12 @@
-From 34fddc884143581bf764da343fc29b8766789c58 Mon Sep 17 00:00:00 2001
+From eac86211dd7fa96fa91c3cc449e43c59a145754e Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Mon, 11 Sep 2023 11:05:04 +0800
-Subject: [PATCH v4 06/18] perf: RISC-V: Eliminate redundant IRQ enable/disable
+Subject: [PATCH v5 06/13] perf: RISC-V: Eliminate redundant IRQ enable/disable
  operations
 
 The IRQ enable/disable operations are already performed by the
 IRQ chip functions riscv_intc_irq_unmask()/riscv_intc_irq_mask()
-in the enable_percpu_irq()/disable_percpu_irq(). We can just do
+during enable_percpu_irq()/disable_percpu_irq(). We can just do
 it once.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
@@ -15,10 +15,10 @@ Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
  1 file changed, 2 deletions(-)
 
 diff --git a/drivers/perf/riscv_pmu_sbi.c b/drivers/perf/riscv_pmu_sbi.c
-index 4163ff517471..91a6feab038d 100644
+index 96c7f670c8f0..f340db9ce1e2 100644
 --- a/drivers/perf/riscv_pmu_sbi.c
 +++ b/drivers/perf/riscv_pmu_sbi.c
-@@ -715,7 +715,6 @@ static int pmu_sbi_starting_cpu(unsigned int cpu, struct hlist_node *node)
+@@ -778,7 +778,6 @@ static int pmu_sbi_starting_cpu(unsigned int cpu, struct hlist_node *node)
  	if (riscv_pmu_use_irq) {
  		cpu_hw_evt->irq = riscv_pmu_irq;
  		csr_clear(CSR_IP, BIT(riscv_pmu_irq_num));
@@ -26,7 +26,7 @@ index 4163ff517471..91a6feab038d 100644
  		enable_percpu_irq(riscv_pmu_irq, IRQ_TYPE_NONE);
  	}
  
-@@ -726,7 +725,6 @@ static int pmu_sbi_dying_cpu(unsigned int cpu, struct hlist_node *node)
+@@ -789,7 +788,6 @@ static int pmu_sbi_dying_cpu(unsigned int cpu, struct hlist_node *node)
  {
  	if (riscv_pmu_use_irq) {
  		disable_percpu_irq(riscv_pmu_irq);

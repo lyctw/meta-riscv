@@ -1,7 +1,7 @@
-From 66589c08570855dae5457241eed469c3ccb54d01 Mon Sep 17 00:00:00 2001
+From aac972def696edb34485a183c06a9daa1a7244cc Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Mon, 11 Sep 2023 13:39:07 +0800
-Subject: [PATCH v4 03/18] irqchip/riscv-intc: Introduce Andes IRQ chip
+Subject: [PATCH v5 03/13] irqchip/riscv-intc: Introduce Andes IRQ chip
 
 This commit adds support for the Andes IRQ chip, which provides
 IRQ mask/unmask functions to access the custom CSR (SLIE)
@@ -9,7 +9,7 @@ where the non-standard S-mode local interrupt enable bits are
 located.
 
 The Andes INTC requires the "andestech,cpu-intc" compatible string
-to be present in interrupt-controller of each hart. For example:
+to be present in interrupt-controller of each cpu node. e.g.,
 
   cpu0: cpu@0 {
       compatible = "andestech,ax45mp", "riscv";
@@ -25,14 +25,24 @@ Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 Reviewed-by: Charles Ci-Jyun Wu <dminus@andestech.com>
 Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 ---
- drivers/irqchip/irq-riscv-intc.c | 50 ++++++++++++++++++++++++++++++--
- 1 file changed, 48 insertions(+), 2 deletions(-)
+ drivers/irqchip/irq-riscv-intc.c       | 51 +++++++++++++++++++++++++-
+ include/linux/irqchip/irq-riscv-intc.h | 12 ++++++
+ 2 files changed, 61 insertions(+), 2 deletions(-)
+ create mode 100644 include/linux/irqchip/irq-riscv-intc.h
 
 diff --git a/drivers/irqchip/irq-riscv-intc.c b/drivers/irqchip/irq-riscv-intc.c
-index 1f343825949a..99c483c70bdc 100644
+index 79d049105384..8970a7e5d010 100644
 --- a/drivers/irqchip/irq-riscv-intc.c
 +++ b/drivers/irqchip/irq-riscv-intc.c
-@@ -45,6 +45,28 @@ static void riscv_intc_irq_unmask(struct irq_data *d)
+@@ -13,6 +13,7 @@
+ #include <linux/irq.h>
+ #include <linux/irqchip.h>
+ #include <linux/irqdomain.h>
++#include <linux/irqchip/irq-riscv-intc.h>
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+@@ -45,6 +46,28 @@ static void riscv_intc_irq_unmask(struct irq_data *d)
  	csr_set(CSR_IE, BIT(d->hwirq));
  }
  
@@ -61,7 +71,7 @@ index 1f343825949a..99c483c70bdc 100644
  static void riscv_intc_irq_eoi(struct irq_data *d)
  {
  	/*
-@@ -68,12 +90,35 @@ static struct irq_chip riscv_intc_chip = {
+@@ -68,12 +91,35 @@ static struct irq_chip riscv_intc_chip = {
  	.irq_eoi = riscv_intc_irq_eoi,
  };
  
@@ -99,7 +109,7 @@ index 1f343825949a..99c483c70bdc 100644
  
  	return 0;
  }
-@@ -158,6 +203,7 @@ static int __init riscv_intc_init(struct device_node *node,
+@@ -166,6 +212,7 @@ static int __init riscv_intc_init(struct device_node *node,
  }
  
  IRQCHIP_DECLARE(riscv, "riscv,cpu-intc", riscv_intc_init);
@@ -107,6 +117,24 @@ index 1f343825949a..99c483c70bdc 100644
  
  #ifdef CONFIG_ACPI
  
+diff --git a/include/linux/irqchip/irq-riscv-intc.h b/include/linux/irqchip/irq-riscv-intc.h
+new file mode 100644
+index 000000000000..87c105b5b545
+--- /dev/null
++++ b/include/linux/irqchip/irq-riscv-intc.h
+@@ -0,0 +1,12 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * Copyright (C) 2023 Andes Technology Corporation
++ */
++#ifndef __INCLUDE_LINUX_IRQCHIP_IRQ_RISCV_INTC_H
++#define __INCLUDE_LINUX_IRQCHIP_IRQ_RISCV_INTC_H
++
++#define ANDES_SLI_CAUSE_BASE	256
++#define ANDES_CSR_SLIE		0x9c4
++#define ANDES_CSR_SLIP		0x9c5
++
++#endif /* __INCLUDE_LINUX_IRQCHIP_IRQ_RISCV_INTC_H */
 -- 
 2.34.1
 

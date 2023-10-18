@@ -1,7 +1,7 @@
-From a3a6c457493ba0a22d1e3570dd37b685b95a7337 Mon Sep 17 00:00:00 2001
+From ffd752f1a198257a89e116d72bf2babbb4942cb3 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Mon, 11 Sep 2023 13:28:12 +0800
-Subject: [PATCH v4 02/18] irqchip/riscv-intc: Allow large non-standard hwirq
+Subject: [PATCH v5 02/13] irqchip/riscv-intc: Allow large non-standard hwirq
  number
 
 Currently, the implementation of the RISC-V INTC driver uses the
@@ -26,7 +26,7 @@ Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
  1 file changed, 4 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/irqchip/irq-riscv-intc.c b/drivers/irqchip/irq-riscv-intc.c
-index 4adeee1bc391..1f343825949a 100644
+index e8d01b14ccdd..79d049105384 100644
 --- a/drivers/irqchip/irq-riscv-intc.c
 +++ b/drivers/irqchip/irq-riscv-intc.c
 @@ -24,10 +24,8 @@ static asmlinkage void riscv_intc_irq(struct pt_regs *regs)
