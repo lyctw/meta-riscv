@@ -13,6 +13,7 @@ SRC_URI = "git://github.com/TinkerBoard/renesas-renesas-u-boot-cip.git;protocol=
            file://0001-spl-opensbi-convert-scratch-options-to-config.patch \
            file://0002-riscv-Update-PLMT-and-PLICSW-compatible-string.patch \
            file://0001-riscv-fix-build-with-binutils-2.38.patch \
+           file://0001-riscv-rzfive-Prefer-using-the-generic-RISC-V-timer-d.patch \
            file://opensbi-options.cfg \
            file://boot.cfg \
            "

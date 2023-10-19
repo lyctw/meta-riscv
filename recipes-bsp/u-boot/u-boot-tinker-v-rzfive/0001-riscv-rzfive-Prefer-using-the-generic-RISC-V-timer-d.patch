@@ -1,0 +1,79 @@
+From 18d07017f01964dcc10da7f52db7565d50f9014f Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Fri, 29 Sep 2023 12:03:07 +0800
+Subject: [PATCH] riscv: rzfive: Prefer using the generic RISC-V timer driver
+ in S-mode
+
+The Andes PLMT driver directly accesses the mtime MMIO region,
+indicating its intended use in the M-mode boot stage. However,
+since U-Boot proper (S-mode) also uses the PLMT driver, we need
+to specifically mark the region as readable through PMPCFGx (or
+S/U-mode read-only shared data region for Smepmp) in OpenSBI.
+
+Granting permission for this case doesn't make sense. Instead,
+we should use the generic RISC-V timer driver to read the mtime
+through the TIME CSR. Therefore, we add the SPL_ANDES_PLMT_TIMER
+config, which ensures that the PLMT driver is linked exclusively
+against M-mode U-Boot or U-Boot SPL binaries.
+
+Upstream-Status: Pending
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+---
+ arch/riscv/cpu/rzfive/Kconfig | 5 +++--
+ drivers/timer/Kconfig         | 9 ++++++++-
+ drivers/timer/Makefile        | 2 +-
+ 3 files changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/arch/riscv/cpu/rzfive/Kconfig b/arch/riscv/cpu/rzfive/Kconfig
+index 8d8d71dcbf..7dc680af23 100644
+--- a/arch/riscv/cpu/rzfive/Kconfig
++++ b/arch/riscv/cpu/rzfive/Kconfig
+@@ -3,9 +3,10 @@ config RISCV_NDS
+ 	select ARCH_EARLY_INIT_R
+ 	imply CPU
+ 	imply CPU_RISCV
+-	imply RISCV_TIMER
++	imply RISCV_TIMER if (RISCV_SMODE || SPL_RISCV_SMODE)
++	imply ANDES_PLMT_TIMER
++	imply SPL_ANDES_PLMT_TIMER
+ 	imply ANDES_PLIC if (RISCV_MMODE || SPL_RISCV_MMODE)
+-	imply ANDES_PLMT if (RISCV_MMODE || SPL_RISCV_MMODE)
+ 	imply SPL_CPU_SUPPORT
+ 	imply SPL_OPENSBI
+ 	imply SPL_LOAD_FIT
+diff --git a/drivers/timer/Kconfig b/drivers/timer/Kconfig
+index 8913142654..1a0a0b1c5c 100644
+--- a/drivers/timer/Kconfig
++++ b/drivers/timer/Kconfig
+@@ -55,7 +55,14 @@ config ALTERA_TIMER
+ 
+ config ANDES_PLMT_TIMER
+ 	bool
+-	depends on RISCV_MMODE || SPL_RISCV_MMODE
++	depends on RISCV_MMODE
++	help
++	  The Andes PLMT block holds memory-mapped mtime register
++	  associated with timer tick.
++
++config SPL_ANDES_PLMT_TIMER
++	bool
++	depends on SPL_RISCV_MMODE
+ 	help
+ 	  The Andes PLMT block holds memory-mapped mtime register
+ 	  associated with timer tick.
+diff --git a/drivers/timer/Makefile b/drivers/timer/Makefile
+index e2bd530eb0..0e5b46695d 100644
+--- a/drivers/timer/Makefile
++++ b/drivers/timer/Makefile
+@@ -5,7 +5,7 @@
+ obj-y += timer-uclass.o
+ obj-$(CONFIG_AG101P_TIMER) += ag101p_timer.o
+ obj-$(CONFIG_ALTERA_TIMER)	+= altera_timer.o
+-obj-$(CONFIG_ANDES_PLMT_TIMER) += andes_plmt_timer.o
++obj-$(CONFIG_$(SPL_)ANDES_PLMT_TIMER) += andes_plmt_timer.o
+ obj-$(CONFIG_ARC_TIMER)	+= arc_timer.o
+ obj-$(CONFIG_AST_TIMER)	+= ast_timer.o
+ obj-$(CONFIG_ATCPIT100_TIMER) += atcpit100_timer.o
+-- 
+2.34.1
+
