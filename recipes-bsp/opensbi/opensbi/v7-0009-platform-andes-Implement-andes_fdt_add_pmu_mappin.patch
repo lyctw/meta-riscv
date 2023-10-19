@@ -1,7 +1,7 @@
-From f5747de9599b618d681db1627ba137964994c69b Mon Sep 17 00:00:00 2001
+From efda74aeb12785d578974a9e53c8125e404af58d Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Wed, 18 Oct 2023 14:30:36 +0800
-Subject: [PATCH v5 09/12] platform: andes: Implement
+Subject: [PATCH v7 09/12] platform: andes: Implement
  andes_fdt_add_pmu_mappings platform override
 
 Implement the andes_fdt_add_pmu_mappings() callback, which creates PMU
@@ -41,7 +41,7 @@ index 1fe469e..89187e7 100644
   * Special "firmware" events provided by the OpenSBI, even if the hardware
   * does not support performance events. These events are encoded as a raw
 diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index d6dafef..fbcd870 100644
+index e6e7e94..803fc4b 100644
 --- a/platform/generic/Kconfig
 +++ b/platform/generic/Kconfig
 @@ -31,6 +31,7 @@ config PLATFORM_ALLWINNER_D1

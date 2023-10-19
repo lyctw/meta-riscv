@@ -1,7 +1,7 @@
-From 5e2033fc217adbb5b2a7c5393f668f70b4456bdb Mon Sep 17 00:00:00 2001
+From a300c6dad6223ab315f874f55cf5deed901fcca6 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sat, 23 Sep 2023 19:36:37 +0800
-Subject: [PATCH v5 01/12] sbi: sbi_pmu: Improve sbi_pmu_init() error handling
+Subject: [PATCH v7 01/12] sbi: sbi_pmu: Improve sbi_pmu_init() error handling
 
 This patch makes the following changes:
 
@@ -23,19 +23,16 @@ Upstream-Status: Pending
  3 files changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index f4c8fc4..3cbd4ff 100644
+index 939f29d..77763ae 100644
 --- a/lib/sbi/sbi_pmu.c
 +++ b/lib/sbi/sbi_pmu.c
-@@ -957,6 +957,7 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
- 	int hpm_count = sbi_fls(sbi_hart_mhpm_mask(scratch));
- 	struct sbi_pmu_hart_state *phs;
+@@ -895,11 +895,14 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
+ {
  	const struct sbi_platform *plat;
+ 	u32 hartid = current_hartid();
 +	int rc;
  
  	if (cold_boot) {
- 		hw_event_map = sbi_calloc(sizeof(*hw_event_map),
-@@ -972,7 +973,9 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
- 
  		plat = sbi_platform_ptr(scratch);
  		/* Initialize hw pmu events */
 -		sbi_platform_pmu_init(plat);
@@ -44,7 +41,7 @@ index f4c8fc4..3cbd4ff 100644
 +			return rc;
  
  		/* mcycle & minstret is available always */
- 		if (!hpm_count)
+ 		num_hw_ctrs = sbi_hart_mhpm_count(scratch) + 3;
 diff --git a/lib/utils/fdt/fdt_pmu.c b/lib/utils/fdt/fdt_pmu.c
 index 83301bb..a8d7648 100644
 --- a/lib/utils/fdt/fdt_pmu.c
@@ -59,10 +56,10 @@ index 83301bb..a8d7648 100644
  	event_ctr_map = fdt_getprop(fdt, pmu_offset,
  				    "riscv,event-to-mhpmcounters", &len);
 diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 66a0b77..cb9270d 100644
+index eeefef4..4b2c3cc 100644
 --- a/platform/generic/platform.c
 +++ b/platform/generic/platform.c
-@@ -265,7 +265,13 @@ static u32 generic_tlb_num_entries(void)
+@@ -249,7 +249,13 @@ static u64 generic_tlbr_flush_limit(void)
  
  static int generic_pmu_init(void)
  {

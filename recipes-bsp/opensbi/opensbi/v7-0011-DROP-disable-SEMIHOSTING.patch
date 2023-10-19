@@ -1,7 +1,7 @@
-From 7617ddb2f0d2d226c3b186d203f110bb63cb9310 Mon Sep 17 00:00:00 2001
+From d91e3531c0dc64d002d947a7946851560f303c92 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Mon, 18 Sep 2023 16:50:09 +0800
-Subject: [PATCH v5 11/12] !!!DROP!!! disable SEMIHOSTING
+Subject: [PATCH v7 11/12] !!!DROP!!! disable SEMIHOSTING
 
 Upstream-Status: Pending
 ---
@@ -9,18 +9,15 @@ Upstream-Status: Pending
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index c432bc2..b5faaec 100644
+index ee0df38..9a48bba 100644
 --- a/platform/generic/configs/defconfig
 +++ b/platform/generic/configs/defconfig
-@@ -38,7 +38,7 @@ CONFIG_FDT_SERIAL_SIFIVE=y
- CONFIG_FDT_SERIAL_LITEX=y
- CONFIG_FDT_SERIAL_UART8250=y
- CONFIG_FDT_SERIAL_XILINX_UARTLITE=y
--CONFIG_SERIAL_SEMIHOSTING=y
-+# CONFIG_SERIAL_SEMIHOSTING is not set
+@@ -37,4 +37,4 @@ CONFIG_FDT_SERIAL_XILINX_UARTLITE=y
  CONFIG_FDT_TIMER=y
  CONFIG_FDT_TIMER_MTIMER=y
  CONFIG_FDT_TIMER_PLMT=y
+-CONFIG_SERIAL_SEMIHOSTING=y
++# CONFIG_SERIAL_SEMIHOSTING is not set
 -- 
 2.34.1
 

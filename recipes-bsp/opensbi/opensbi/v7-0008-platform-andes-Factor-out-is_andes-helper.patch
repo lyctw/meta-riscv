@@ -1,7 +1,7 @@
-From e6ff157f3dcddc7c3cf393e0dca1dda26a7b6a4e Mon Sep 17 00:00:00 2001
+From a495aeba0da39fec78a903d2e1e0f5ed794276eb Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Wed, 18 Oct 2023 14:30:20 +0800
-Subject: [PATCH v5 08/12] platform: andes: Factor out is_andes() helper
+Subject: [PATCH v7 08/12] platform: andes: Factor out is_andes() helper
 
 We will need is_andes(45) in the following patch,
 so factor out the code to parse marchid to make it
@@ -12,15 +12,15 @@ Also improves the comment in ae350_hart_start().
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 Upstream-Status: Pending
 ---
- platform/generic/andes/ae350.c           | 15 ++++++---------
+ platform/generic/andes/ae350.c           | 17 +++++++----------
  platform/generic/include/andes/andes45.h |  6 ++++++
- 2 files changed, 12 insertions(+), 9 deletions(-)
+ 2 files changed, 13 insertions(+), 10 deletions(-)
 
 diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
-index c3f280d..16e6283 100644
+index bbc257b..16e6283 100644
 --- a/platform/generic/andes/ae350.c
 +++ b/platform/generic/andes/ae350.c
-@@ -24,16 +24,13 @@ static struct smu_data smu = { 0 };
+@@ -24,17 +24,14 @@ static struct smu_data smu = { 0 };
  extern void __ae350_enable_coherency_warmboot(void);
  extern void __ae350_disable_coherency(void);
  
@@ -34,14 +34,16 @@ index c3f280d..16e6283 100644
  {
 -	/* Don't send wakeup command at boot-time */
 -	if (!sbi_init_count(hartid) || (is_andes25() && hartid == 0))
+-		return sbi_ipi_raw_send(hartid);
 +	/*
 +	 * Don't send wakeup command at boot-time or the
 +	 * target hart is non-sleepable 25-series hart0
 +	 */
 +	if (!sbi_init_count(hartid) || (is_andes(25) && hartid == 0))
- 		return sbi_ipi_raw_send(sbi_hartid_to_hartindex(hartid));
++		return sbi_ipi_raw_send(hartid);
  
  	/* Write wakeup command to the sleep hart */
+ 	smu_set_command(&smu, WAKEUP_CMD, hartid);
 @@ -52,7 +49,7 @@ static int ae350_hart_stop(void)
  	 * L2-cache, instead of turning it off, it should fall
  	 * through and jump to warmboot_addr.

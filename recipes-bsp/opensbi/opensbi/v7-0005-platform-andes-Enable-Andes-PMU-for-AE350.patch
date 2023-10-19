@@ -1,7 +1,7 @@
-From 9dd0b25a6c3026e33c27181dc2bb13258457ec9f Mon Sep 17 00:00:00 2001
+From 7a10bc56aa9f6c0f98294328de309e6bf53eaf05 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 14:01:22 +0800
-Subject: [PATCH v5 05/12] platform: andes: Enable Andes PMU for AE350
+Subject: [PATCH v7 05/12] platform: andes: Enable Andes PMU for AE350
 
 Enable Andes PMU extension support for AE350 platforms.
 
@@ -14,7 +14,7 @@ Upstream-Status: Pending
  2 files changed, 14 insertions(+)
 
 diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index e7bd94e..9b2f9c7 100644
+index 72768ed..16c28fe 100644
 --- a/platform/generic/Kconfig
 +++ b/platform/generic/Kconfig
 @@ -31,6 +31,7 @@ config PLATFORM_ALLWINNER_D1
@@ -26,7 +26,7 @@ index e7bd94e..9b2f9c7 100644
  
  config PLATFORM_RENESAS_RZFIVE
 diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
-index 80eca05..c3f280d 100644
+index 01bd02d..bbc257b 100644
 --- a/platform/generic/andes/ae350.c
 +++ b/platform/generic/andes/ae350.c
 @@ -8,6 +8,7 @@

@@ -1,7 +1,7 @@
-From 889366d74995ea08e6628fe18683b0a22be1838e Mon Sep 17 00:00:00 2001
+From e1cb6e95ca3c411d96bc3b1ab6368f7c2e0dce8d Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 14:01:49 +0800
-Subject: [PATCH v5 06/12] platform: rzfive: Enable Andes PMU for RZ/Five
+Subject: [PATCH v7 06/12] platform: rzfive: Enable Andes PMU for RZ/Five
 
 Enable Andes PMU extension support for RZ/Five.
 This patch also staticize renesas_rzfive_early_init() as
@@ -16,7 +16,7 @@ Upstream-Status: Pending
  2 files changed, 16 insertions(+), 1 deletion(-)
 
 diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index 9b2f9c7..d6dafef 100644
+index 16c28fe..e6e7e94 100644
 --- a/platform/generic/Kconfig
 +++ b/platform/generic/Kconfig
 @@ -38,6 +38,7 @@ config PLATFORM_RENESAS_RZFIVE

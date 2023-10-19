@@ -1,7 +1,7 @@
-From f79f596e74c857b093d4c41e38c328fddb753752 Mon Sep 17 00:00:00 2001
+From eab8e9360e586250c18ed0f53cda83ad2194fed3 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Mon, 18 Sep 2023 16:50:25 +0800
-Subject: [PATCH v5 12/12] !!!DROP!!! Print entries at boot-time
+Subject: [PATCH v7 12/12] !!!DROP!!! Print entries at boot-time
 
 Upstream-Status: Pending
 ---

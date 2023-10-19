@@ -1,7 +1,7 @@
-From baf5c58ee8ca166253443d4d40de394ee3773c34 Mon Sep 17 00:00:00 2001
+From d9e349ea2fb15b1509b2c10cc8aedd7151adb75e Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Tue, 17 Oct 2023 16:15:55 +0800
-Subject: [PATCH v5 07/12] lib: utils: fdt_fixup: Add fdt_add_pmu_mappings()
+Subject: [PATCH v7 07/12] lib: utils: fdt_fixup: Add fdt_add_pmu_mappings()
  helper function
 
 Add fdt_add_pmu_mappings() that creates entries of riscv,*event-to-mhpm*
@@ -21,7 +21,7 @@ Upstream-Status: Pending
  4 files changed, 153 insertions(+), 1 deletion(-)
 
 diff --git a/include/sbi_utils/fdt/fdt_fixup.h b/include/sbi_utils/fdt/fdt_fixup.h
-index ecd55a7..9b72df8 100644
+index cab3f0f..af3cda1 100644
 --- a/include/sbi_utils/fdt/fdt_fixup.h
 +++ b/include/sbi_utils/fdt/fdt_fixup.h
 @@ -19,6 +19,54 @@ struct sbi_cpu_idle_state {
@@ -80,7 +80,7 @@ index ecd55a7..9b72df8 100644
   * Add CPU idle states to cpu nodes in the DT
   *
 diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-index e213ded..67e2e2e 100644
+index ae6be00..609f8cd 100644
 --- a/lib/utils/fdt/fdt_fixup.c
 +++ b/lib/utils/fdt/fdt_fixup.c
 @@ -20,6 +20,101 @@
@@ -186,22 +186,22 @@ index e213ded..67e2e2e 100644
  {
  	int cpu_node, cpus_node, err, idle_states_node;
 diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
-index bf4b112..bd34d2a 100644
+index 0d9e5ee..7e8713e 100644
 --- a/platform/generic/include/platform_override.h
 +++ b/platform/generic/include/platform_override.h
-@@ -19,6 +19,7 @@ struct platform_override {
+@@ -18,6 +18,7 @@ struct platform_override {
+ 	const struct fdt_match *match_table;
  	u64 (*features)(const struct fdt_match *match);
  	u64 (*tlbr_flush_limit)(const struct fdt_match *match);
- 	u32 (*tlb_num_entries)(const struct fdt_match *match);
 +	int (*fdt_add_pmu_mappings)(void *fdt, const struct fdt_match *match);
  	bool (*cold_boot_allowed)(u32 hartid, const struct fdt_match *match);
  	int (*early_init)(bool cold_boot, const struct fdt_match *match);
  	int (*final_init)(bool cold_boot, const struct fdt_match *match);
 diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index cb9270d..a48a8b7 100644
+index 4b2c3cc..b404542 100644
 --- a/platform/generic/platform.c
 +++ b/platform/generic/platform.c
-@@ -265,9 +265,17 @@ static u32 generic_tlb_num_entries(void)
+@@ -249,9 +249,17 @@ static u64 generic_tlbr_flush_limit(void)
  
  static int generic_pmu_init(void)
  {

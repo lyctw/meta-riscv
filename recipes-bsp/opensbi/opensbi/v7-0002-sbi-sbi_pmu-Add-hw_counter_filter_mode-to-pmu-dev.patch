@@ -1,7 +1,7 @@
-From f051cb9cb93d0fe3e3560acbcaaf9fc5011df6a8 Mon Sep 17 00:00:00 2001
+From 9225a904e902144130602673dbef6acb9b8131cb Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 13:56:39 +0800
-Subject: [PATCH v5 02/12] sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu
+Subject: [PATCH v7 02/12] sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu
  device
 
 Add support for custom PMU extensions to set inhibit bits
@@ -37,10 +37,10 @@ index 16f6877..d63149c 100644
  
  /** Get the PMU platform device */
 diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 3cbd4ff..7e3723f 100644
+index 77763ae..bb65058 100644
 --- a/lib/sbi/sbi_pmu.c
 +++ b/lib/sbi/sbi_pmu.c
-@@ -599,7 +599,10 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+@@ -579,7 +579,10 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
  		pmu_dev->hw_counter_disable_irq(ctr_idx);
  
  	/* Update the inhibit flags based on inhibit flags received from supervisor */
