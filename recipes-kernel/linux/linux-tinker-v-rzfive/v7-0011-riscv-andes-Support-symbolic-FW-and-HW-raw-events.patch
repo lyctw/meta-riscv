@@ -1,7 +1,7 @@
-From 0bfb048557dba1b87c9503c87ac2e57cfc234317 Mon Sep 17 00:00:00 2001
+From c152a202b562c8f8f9a49f7a7549f69439ad3df9 Mon Sep 17 00:00:00 2001
 From: Locus Wei-Han Chen <locus84@andestech.com>
 Date: Wed, 18 Jan 2023 13:16:53 +0800
-Subject: [PATCH v5 09/13] riscv: andes: Support symbolic FW and HW raw events
+Subject: [PATCH v7 11/11] riscv: andes: Support symbolic FW and HW raw events
 
 This patch adds the Andes AX45 JSON files in the perf tool,
 allowing perf to be used with symbolic event names.

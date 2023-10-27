@@ -1,7 +1,7 @@
-From 966ec157115a019ba8754d7e393b09cf43674fe0 Mon Sep 17 00:00:00 2001
+From 7a6fb83469a5ec7576d7bed7391d80c79868798f Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Mon, 16 Oct 2023 16:02:43 +0800
-Subject: [PATCH v5 07/13] perf: RISC-V: Move T-Head PMU to CPU feature
+Subject: [PATCH v7 08/11] perf: RISC-V: Move T-Head PMU to CPU feature
  alternative framework
 
 The custom PMU extension was developed to support perf event sampling
@@ -12,8 +12,6 @@ consider it as a CPU feature rather than an erratum.
 T-Head cores need to append "xtheadpmu" to the riscv,isa-extensions
 for each cpu node in device tree, and enable CONFIG_THEAD_CUSTOM_PMU
 for proper functioning as of this commit.
-
-This is in preparation for introducing Andes PMU alternative.
 
 Signed-off-by: Yu-Chien Peter Lin <peterlin@andestech.com>
 ---
@@ -27,7 +25,7 @@ Signed-off-by: Yu-Chien Peter Lin <peterlin@andestech.com>
  7 files changed, 30 insertions(+), 48 deletions(-)
 
 diff --git a/arch/riscv/Kconfig.errata b/arch/riscv/Kconfig.errata
-index 566bcefeab50..35dfb19d6a29 100644
+index 92c779764b27..b165a4e376d4 100644
 --- a/arch/riscv/Kconfig.errata
 +++ b/arch/riscv/Kconfig.errata
 @@ -85,17 +85,4 @@ config ERRATA_THEAD_CMO
@@ -49,7 +47,7 @@ index 566bcefeab50..35dfb19d6a29 100644
 -
  endmenu # "CPU errata selection"
 diff --git a/arch/riscv/errata/thead/errata.c b/arch/riscv/errata/thead/errata.c
-index 0554ed4bf087..5de5f7209132 100644
+index be84b14f0118..b461c6b0fd6b 100644
 --- a/arch/riscv/errata/thead/errata.c
 +++ b/arch/riscv/errata/thead/errata.c
 @@ -53,22 +53,6 @@ static bool errata_probe_cmo(unsigned int stage,
@@ -86,7 +84,7 @@ index 0554ed4bf087..5de5f7209132 100644
  }
  
 diff --git a/arch/riscv/include/asm/errata_list.h b/arch/riscv/include/asm/errata_list.h
-index c190393aa9db..1b5354a50d55 100644
+index 56ab40e64092..3770910f4854 100644
 --- a/arch/riscv/include/asm/errata_list.h
 +++ b/arch/riscv/include/asm/errata_list.h
 @@ -25,8 +25,7 @@
@@ -131,10 +129,10 @@ index b7b58258f6c7..d3082391c901 100644
  #define RISCV_ISA_EXT_MAX		64
  
 diff --git a/arch/riscv/kernel/cpufeature.c b/arch/riscv/kernel/cpufeature.c
-index 1cfbba65d11a..4a3fb017026c 100644
+index 6bd2f21e441a..fc7919288ba6 100644
 --- a/arch/riscv/kernel/cpufeature.c
 +++ b/arch/riscv/kernel/cpufeature.c
-@@ -181,6 +181,7 @@ const struct riscv_isa_ext_data riscv_isa_ext[] = {
+@@ -175,6 +175,7 @@ const struct riscv_isa_ext_data riscv_isa_ext[] = {
  	__RISCV_ISA_EXT_DATA(svinval, RISCV_ISA_EXT_SVINVAL),
  	__RISCV_ISA_EXT_DATA(svnapot, RISCV_ISA_EXT_SVNAPOT),
  	__RISCV_ISA_EXT_DATA(svpbmt, RISCV_ISA_EXT_SVPBMT),
@@ -143,7 +141,7 @@ index 1cfbba65d11a..4a3fb017026c 100644
  
  const size_t riscv_isa_ext_count = ARRAY_SIZE(riscv_isa_ext);
 diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
-index 273d67ecf6d2..c71b6f16bdfa 100644
+index f4572a5cca72..5708778a73e4 100644
 --- a/drivers/perf/Kconfig
 +++ b/drivers/perf/Kconfig
 @@ -86,6 +86,19 @@ config RISCV_PMU_SBI
@@ -167,7 +165,7 @@ index 273d67ecf6d2..c71b6f16bdfa 100644
  	depends on ARM_PMU && ACPI
  	def_bool y
 diff --git a/drivers/perf/riscv_pmu_sbi.c b/drivers/perf/riscv_pmu_sbi.c
-index f340db9ce1e2..790fc20fe094 100644
+index 91a6feab038d..1812a57e9040 100644
 --- a/drivers/perf/riscv_pmu_sbi.c
 +++ b/drivers/perf/riscv_pmu_sbi.c
 @@ -20,10 +20,21 @@
@@ -190,10 +188,10 @@ index f340db9ce1e2..790fc20fe094 100644
 +	: "=r" (__ovl) :						\
 +	: "memory")
 +
- #define SYSCTL_NO_USER_ACCESS	0
- #define SYSCTL_USER_ACCESS	1
- #define SYSCTL_LEGACY		2
-@@ -805,7 +816,8 @@ static int pmu_sbi_setup_irqs(struct riscv_pmu *pmu, struct platform_device *pde
+ PMU_FORMAT_ATTR(event, "config:0-47");
+ PMU_FORMAT_ATTR(firmware, "config:63");
+ 
+@@ -742,7 +753,8 @@ static int pmu_sbi_setup_irqs(struct riscv_pmu *pmu, struct platform_device *pde
  	if (riscv_isa_extension_available(NULL, SSCOFPMF)) {
  		riscv_pmu_irq_num = RV_IRQ_PMU;
  		riscv_pmu_use_irq = true;

@@ -1,7 +1,7 @@
-From 34d83a740c07f85f64a3137c61cb2a391eada18e Mon Sep 17 00:00:00 2001
+From 2a2b97a9eafecf690718256c43f07bef97220374 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 10 Sep 2023 17:36:59 +0800
-Subject: [PATCH v5 05/13] dt-bindings: riscv: Add andestech,cpu-intc to
+Subject: [PATCH v7 06/11] dt-bindings: riscv: Add andestech,cpu-intc to
  interrupt-controller
 
 Add "andestech,cpu-intc" compatible string for Andes INTC which
@@ -13,10 +13,10 @@ Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/devicetree/bindings/riscv/cpus.yaml b/Documentation/devicetree/bindings/riscv/cpus.yaml
-index 97e8441eda1c..5b216e11c69f 100644
+index 38c0b5213736..9806e3fd090a 100644
 --- a/Documentation/devicetree/bindings/riscv/cpus.yaml
 +++ b/Documentation/devicetree/bindings/riscv/cpus.yaml
-@@ -99,7 +99,9 @@ properties:
+@@ -98,7 +98,9 @@ properties:
          const: 1
  
        compatible:

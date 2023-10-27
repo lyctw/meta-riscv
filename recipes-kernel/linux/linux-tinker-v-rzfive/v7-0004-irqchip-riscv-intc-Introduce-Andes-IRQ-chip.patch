@@ -1,7 +1,7 @@
-From aac972def696edb34485a183c06a9daa1a7244cc Mon Sep 17 00:00:00 2001
+From 31625267b47da1549e056aa831150e657fe34bc4 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Mon, 11 Sep 2023 13:39:07 +0800
-Subject: [PATCH v5 03/13] irqchip/riscv-intc: Introduce Andes IRQ chip
+Subject: [PATCH v7 04/11] irqchip/riscv-intc: Introduce Andes IRQ chip
 
 This commit adds support for the Andes IRQ chip, which provides
 IRQ mask/unmask functions to access the custom CSR (SLIE)
@@ -31,7 +31,7 @@ Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
  create mode 100644 include/linux/irqchip/irq-riscv-intc.h
 
 diff --git a/drivers/irqchip/irq-riscv-intc.c b/drivers/irqchip/irq-riscv-intc.c
-index 79d049105384..8970a7e5d010 100644
+index 1f343825949a..5fff927dbc76 100644
 --- a/drivers/irqchip/irq-riscv-intc.c
 +++ b/drivers/irqchip/irq-riscv-intc.c
 @@ -13,6 +13,7 @@
@@ -109,7 +109,7 @@ index 79d049105384..8970a7e5d010 100644
  
  	return 0;
  }
-@@ -166,6 +212,7 @@ static int __init riscv_intc_init(struct device_node *node,
+@@ -158,6 +204,7 @@ static int __init riscv_intc_init(struct device_node *node,
  }
  
  IRQCHIP_DECLARE(riscv, "riscv,cpu-intc", riscv_intc_init);
