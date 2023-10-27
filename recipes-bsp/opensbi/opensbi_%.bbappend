@@ -30,10 +30,9 @@ SRC_URI:append:tinker-v-rzfive = " \
     file://0001-lib-ipi-Rearrange-Andes-PLICSW-to-single-bit-per-har.patch \
 "
 
-
 DEPENDS:append:jh7110 = " u-boot-tools-native dtc-native"
 EXTRA_OEMAKE:append:jh7110 = " FW_TEXT_START=0x40000000"
-EXTRA_OEMAKE:append:tinker-v-rzfive = " FW_TEXT_START=0x44000000"
+EXTRA_OEMAKE:append:tinker-v-rzfive = " FW_TEXT_START=0x44000000 DEBUG=1"
 
 do_deploy:append:jh7110() {
 	install -m 0644 ${WORKDIR}/visionfive2-uboot-fit-image.its ${DEPLOYDIR}/visionfive2-uboot-fit-image.its
