@@ -1,52 +1,84 @@
-From b1d9835660e66143f591f25f23147ba088abadec Mon Sep 17 00:00:00 2001
-From: Randolph <randolph@andestech.com>
+From 19b5046c12a701076a5a03e90954cd119fffb46b Mon Sep 17 00:00:00 2001
+From: Leo Yu-Chi Liang <ycliang@andestech.com>
 Date: Wed, 18 Oct 2023 16:27:02 +0800
 Subject: [PATCH] lib: ipi: Rearrange Andes PLICSW to single-bit-per-hart
- strategy
+ scheme
 
-Source hart infomation is not necessary in IPI, so we could
-use single-bit-per-hart strategy to rearrange PLICSW mapping.
+Since source hart infomation is not necessary, we rearrange
+PLICSW scheme to support geater CPU number and allow hart0
+self-IPI.
 
-Bit 0 of Interrupt Pending Bits is hardwired to 0.
-Therefore, we use bit 1 to send IPI to hart 0,
-bit 2 to hart 1, ..., and so on.
+The bit 0 of interrupt pending bits is hardwired to 0.
+Therefore, we use bit 1 to send IPI to hart 0, bit 2
+to hart 1 and so on.
 
-Andes AE350 platform is guaranteed to have 31 interrupt sources.
+The following diagram shows the enable bits of the new scheme
+for 32-core Andes platform.
+
+   Pending regs: 0x1000  x---0---0---0---0------0---0
+Pending hart ID:             0   1   2   3 ... 30  31
+   Interrupt ID:         0   1   2   3   4 ... 31  32
+                         |   |   |   |   |      |   |
+    Enable regs: 0x2000  x---1---0---0---0-...--0---0---> hart0
+                         |   |   |   |   |      |   |
+                 0x2080  x---0---1---0---0-...--0---0---> hart1
+                         |   |   |   |   |      |   |
+                 0x2100  x---0---0---1---0-...--0---0---> hart2
+                         |   |   |   |   |      |   |
+                 0x2180  x---0---0---0---1-...--0---0---> hart3
+                         .   .   .   .   .      .   .
+                         .   .   .   .   .      .   .
+                         .   .   .   .   .      .   .
+                 0x2f00  x---0---0---0---0-...--1---0---> hart30
+                         |   |   |   |   |      |   |
+                 0x2f80  x---0---0---0---0-...--0---1---> hart31
+                         <-------- word 0 -------><--- word 1 --->
+
+Fixes: ce7c490719ed ("lib: utils/ipi: Add Andes fdt ipi driver support")
+Signed-off-by: Leo Yu-Chi Liang <ycliang@andestech.com>
+Reviewed-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Randolph <randolph@andestech.com>
 
 Upstream-Status: Pending
 ---
- include/sbi_utils/ipi/andes_plicsw.h | 11 +++--
- lib/utils/ipi/andes_plicsw.c         | 71 ++++++++++------------------
- 2 files changed, 31 insertions(+), 51 deletions(-)
+ include/sbi_utils/ipi/andes_plicsw.h |  23 ++----
+ lib/utils/ipi/andes_plicsw.c         | 106 +++++++++++----------------
+ 2 files changed, 51 insertions(+), 78 deletions(-)
 
 diff --git a/include/sbi_utils/ipi/andes_plicsw.h b/include/sbi_utils/ipi/andes_plicsw.h
-index e93cda0..21d20ae 100644
+index e93cda0..0d18444 100644
 --- a/include/sbi_utils/ipi/andes_plicsw.h
 +++ b/include/sbi_utils/ipi/andes_plicsw.h
-@@ -16,7 +16,6 @@
- #define PLICSW_PRIORITY_BASE 0x4
+@@ -13,30 +13,23 @@
+ #ifndef _IPI_ANDES_PLICSW_H_
+ #define _IPI_ANDES_PLICSW_H_
  
- #define PLICSW_PENDING_BASE 0x1000
+-#define PLICSW_PRIORITY_BASE 0x4
++#define PLICSW_PRIORITY_BASE	0x4
+ 
+-#define PLICSW_PENDING_BASE 0x1000
 -#define PLICSW_PENDING_STRIDE 0x8
++#define PLICSW_PENDING_BASE	0x1000
  
- #define PLICSW_ENABLE_BASE 0x2000
- #define PLICSW_ENABLE_STRIDE 0x80
-@@ -25,18 +24,20 @@
- #define PLICSW_CONTEXT_STRIDE 0x1000
- #define PLICSW_CONTEXT_CLAIM 0x4
+-#define PLICSW_ENABLE_BASE 0x2000
+-#define PLICSW_ENABLE_STRIDE 0x80
++#define PLICSW_ENABLE_BASE	0x2000
++#define PLICSW_ENABLE_STRIDE	0x80
+ 
+-#define PLICSW_CONTEXT_BASE 0x200000
+-#define PLICSW_CONTEXT_STRIDE 0x1000
+-#define PLICSW_CONTEXT_CLAIM 0x4
++#define PLICSW_CONTEXT_BASE	0x200000
++#define PLICSW_CONTEXT_STRIDE	0x1000
++#define PLICSW_CONTEXT_CLAIM	0x4
  
 -#define PLICSW_HART_MASK 0x01010101
 -
- #define PLICSW_HART_MAX_NR 8
+-#define PLICSW_HART_MAX_NR 8
+-
+-#define PLICSW_REGION_ALIGN 0x1000
++#define PLICSW_REGION_ALIGN	0x1000
  
- #define PLICSW_REGION_ALIGN 0x1000
- 
-+/* Bit 0 of PLIC-SW pending array is hardwired to zero, so we start from bit 1 */
-+#define FIRST_AVAILABLE_BIT	0x2
-+
-+#define BITS_PER_REG            32
-+#define BYTES_PER_REG           4
-+
  struct plicsw_data {
  	unsigned long addr;
  	unsigned long size;
@@ -57,28 +89,31 @@ index e93cda0..21d20ae 100644
  
  int plicsw_warm_ipi_init(void);
 diff --git a/lib/utils/ipi/andes_plicsw.c b/lib/utils/ipi/andes_plicsw.c
-index db25ae2..15e5acc 100644
+index db25ae2..4c42ddd 100644
 --- a/lib/utils/ipi/andes_plicsw.c
 +++ b/lib/utils/ipi/andes_plicsw.c
-@@ -12,60 +12,37 @@
+@@ -12,79 +12,54 @@
  
  #include <sbi/riscv_asm.h>
  #include <sbi/riscv_io.h>
 +#include <sbi/sbi_console.h>
  #include <sbi/sbi_domain.h>
-+#include <sbi/sbi_hart.h>
  #include <sbi/sbi_ipi.h>
  #include <sbi_utils/ipi/andes_plicsw.h>
  
  struct plicsw_data plicsw;
  
 -static inline void plicsw_claim(void)
--{
++static void plicsw_ipi_send(u32 target_hart)
+ {
 -	u32 hartid = current_hartid();
--
++	ulong pending_reg;
++	u32 interrupt_id, word_index, pending_bit;
+ 
 -	if (plicsw.hart_count <= hartid)
--		ebreak();
--
++	if (plicsw.hart_count <= target_hart)
+ 		ebreak();
+ 
 -	plicsw.source_id[hartid] =
 -		readl((void *)plicsw.addr + PLICSW_CONTEXT_BASE +
 -		      PLICSW_CONTEXT_CLAIM + PLICSW_CONTEXT_STRIDE * hartid);
@@ -94,11 +129,12 @@ index db25ae2..15e5acc 100644
 -			       PLICSW_CONTEXT_STRIDE * hartid);
 -}
 -
- static inline void plic_sw_pending(u32 target_hart)
- {
+-static inline void plic_sw_pending(u32 target_hart)
+-{
  	/*
- 	 * The pending array registers are w1s type.
+-	 * The pending array registers are w1s type.
 -	 * IPI pending array mapping as following:
++	 * The pending registers are w1s type.
  	 *
 -	 * Pending array start address: base + 0x1000
 -	 * ---------------------------------
@@ -106,71 +142,102 @@ index db25ae2..15e5acc 100644
 -	 * ---------------------------------
 -	 * Each hartX can send IPI to another hart by setting the
 -	 * bitY to its own region (see the below).
-+	 * We allocate a single bit for each hart.
-+	 * Bit 0 is hardwired to 0, thus unavailable.
-+	 * Bit(X+1) indicates that IPI is sent to hartX.
- 	 *
+-	 *
 -	 * In each hartX region:
 -	 * <---------- PICSW_PENDING_STRIDE -------->
 -	 * | bit7 | ... | bit3 | bit2 | bit1 | bit0 |
 -	 * ------------------------------------------
 -	 * The bitY of hartX region indicates that hartX sends an
 -	 * IPI to hartY.
-+	 * AE350 platform guarantees only 31 interrupt sources,
-+	 * so target hart ID ranges from 0 to 30, else ebreak.
++	 * We allocate a single bit for each hart.
++	 * Bit 0 is hardwired to 0, thus unavailable.
++	 * Bit(X+1) indicates that IPI is sent to hartX.
  	 */
 -	u32 hartid	    = current_hartid();
 -	u32 word_index	    = hartid / 4;
 -	u32 per_hart_offset = PLICSW_PENDING_STRIDE * hartid;
 -	u32 val		    = 1 << target_hart << per_hart_offset;
-+	if (target_hart + 1 > PLICSW_HART_MAX_NR) {
-+		sbi_printf("%s: Number of harts is larger than PLICSW_HART_MAX_NR (%d)\n",
-+			__func__, PLICSW_HART_MAX_NR);
-+		sbi_hart_hang();
-+	}
-+
-+	u32 pending_reg_index = (target_hart + 1) / BITS_PER_REG;
-+	u32 offset            = pending_reg_index * BYTES_PER_REG;
-+	u32 val               = 1 << ((target_hart + 1) % BITS_PER_REG);
++	interrupt_id = target_hart + 1;
++	word_index   = interrupt_id / 32;
++	pending_bit  = interrupt_id % 32;
++	pending_reg  = plicsw.addr + PLICSW_PENDING_BASE + word_index * 4;
  
 -	writel(val, (void *)plicsw.addr + PLICSW_PENDING_BASE + word_index * 4);
-+	writel(val, (void *)plicsw.addr + PLICSW_PENDING_BASE + offset);
++	writel(BIT(pending_bit), (void *)pending_reg);
  }
  
- static void plicsw_ipi_send(u32 target_hart)
-@@ -82,9 +59,12 @@ static void plicsw_ipi_clear(u32 target_hart)
+-static void plicsw_ipi_send(u32 target_hart)
++static void plicsw_ipi_clear(u32 target_hart)
+ {
++	ulong reg = plicsw.addr + PLICSW_CONTEXT_BASE + PLICSW_CONTEXT_CLAIM +
++		    PLICSW_CONTEXT_STRIDE * target_hart;
++
  	if (plicsw.hart_count <= target_hart)
  		ebreak();
+ 
+-	/* Set PLICSW IPI */
+-	plic_sw_pending(target_hart);
+-}
++	/* Claim */
++	u32 source = readl((void *)reg);
+ 
+-static void plicsw_ipi_clear(u32 target_hart)
+-{
+-	if (plicsw.hart_count <= target_hart)
+-		ebreak();
++	/* mip.MSIP should be cleared */
++	if (csr_read(CSR_MIP) & MIP_MSIP)
++		sbi_printf("%s: ERR: Failed to claim a software interrupt\n",
++			   __func__);
  
 -	/* Clear PLICSW IPI */
 -	plicsw_claim();
 -	plicsw_complete();
-+	/* Claim */
-+	u32 source = readl((void *)plicsw.addr + PLICSW_CONTEXT_BASE +
-+			   PLICSW_CONTEXT_CLAIM + PLICSW_CONTEXT_STRIDE * target_hart);
 +	/* Complete */
-+	writel(source, (void *)plicsw.addr + PLICSW_CONTEXT_BASE +
-+	       PLICSW_CONTEXT_CLAIM + PLICSW_CONTEXT_STRIDE * target_hart);
++	writel(source, (void *)reg);
  }
  
  static struct sbi_ipi_device plicsw_ipi = {
-@@ -113,14 +93,13 @@ int plicsw_cold_ipi_init(struct plicsw_data *plicsw)
- 	for (int i = 0; i < plicsw->hart_count; i++)
- 		writel(1, &priority[i]);
+@@ -106,22 +81,27 @@ int plicsw_warm_ipi_init(void)
+ int plicsw_cold_ipi_init(struct plicsw_data *plicsw)
+ {
+ 	int rc;
++	u32 interrupt_id, word_index, enable_bit;
++	ulong enable_reg, priority_reg;
  
+ 	/* Setup source priority */
+-	uint32_t *priority = (void *)plicsw->addr + PLICSW_PRIORITY_BASE;
+-
+-	for (int i = 0; i < plicsw->hart_count; i++)
+-		writel(1, &priority[i]);
+-
 -	/* Setup target enable */
 -	uint32_t enable_mask = PLICSW_HART_MASK;
-+	/* Setup target enable, bit 0 is unavailable */
-+	uint32_t enable_mask = FIRST_AVAILABLE_BIT;
++	for (int i = 0; i < plicsw->hart_count; i++) {
++		priority_reg = plicsw->addr + PLICSW_PRIORITY_BASE + i * 4;
++		writel(1, (void *)priority_reg);
++	}
  
++	/*
++	 * Setup enable for each hart, skip non-existent interrupt ID 0
++	 * which is hardwired to 0.
++	 */
  	for (int i = 0; i < plicsw->hart_count; i++) {
- 		uint32_t *enable = (void *)plicsw->addr + PLICSW_ENABLE_BASE +
- 				   PLICSW_ENABLE_STRIDE * i;
- 		writel(enable_mask, enable);
+-		uint32_t *enable = (void *)plicsw->addr + PLICSW_ENABLE_BASE +
+-				   PLICSW_ENABLE_STRIDE * i;
+-		writel(enable_mask, enable);
 -		writel(enable_mask, enable + 1);
- 		enable_mask <<= 1;
+-		enable_mask <<= 1;
++		interrupt_id = i + 1;
++		word_index   = interrupt_id / 32;
++		enable_bit   = interrupt_id % 32;
++		enable_reg   = plicsw->addr + PLICSW_ENABLE_BASE +
++			     PLICSW_ENABLE_STRIDE * i + 4 * word_index;
++		writel(BIT(enable_bit),
++		       (void *)enable_reg); // i=31, val=0x1, reg=0x2f84
  	}
  
+ 	/* Add PLICSW region to the root domain */
 -- 
 2.34.1
 
