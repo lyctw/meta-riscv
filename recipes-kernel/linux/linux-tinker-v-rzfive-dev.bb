@@ -26,6 +26,7 @@ SRC_URI = "git://github.com/${FORK}/linux.git;protocol=https;branch=${BRANCH} \
            file://v7-0009-perf-RISC-V-Introduce-Andes-PMU-for-perf-event-sa.patch \
            file://v7-0010-riscv-dts-renesas-Add-Andes-PMU-extension.patch \
            file://v7-0011-riscv-andes-Support-symbolic-FW-and-HW-raw-events.patch \
+           file://0001-L2C-irq-handler.patch \
            file://set-mmap-min-addr.cfg \
            "
 

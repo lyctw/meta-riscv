@@ -1,0 +1,77 @@
+From 13ecb82dadf75240a8da9d7bbc0fa0a54534a060 Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Thu, 16 Nov 2023 15:28:39 +0800
+Subject: [PATCH] L2C irq handler
+
+---
+ drivers/cache/ax45mp_cache.c | 32 +++++++++++++++++++++++++++++++-
+ 1 file changed, 31 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/cache/ax45mp_cache.c b/drivers/cache/ax45mp_cache.c
+index 57186c58dc84..a4f8177c6337 100644
+--- a/drivers/cache/ax45mp_cache.c
++++ b/drivers/cache/ax45mp_cache.c
+@@ -10,6 +10,8 @@
+ #include <linux/dma-direction.h>
+ #include <linux/of_address.h>
+ #include <linux/of_platform.h>
++#include <linux/of_irq.h>
++#include <linux/interrupt.h>
+ 
+ #include <asm/dma-noncoherent.h>
+ 
+@@ -172,11 +174,28 @@ static const struct of_device_id ax45mp_cache_ids[] = {
+ 	{ /* sentinel */ }
+ };
+ 
++static irqreturn_t l2c_irq(int irq, void *data)
++{
++	struct ax45mp_priv *priv = data;
++	u32 reg1, reg2;
++
++	reg1 = readl(priv->l2c_base + 0x30);
++	reg2 = readl(priv->l2c_base + 0x38);
++
++	if (reg1)
++		writel(0x0, priv->l2c_base + 0x30);
++
++	if (reg2)
++		writel(0x0, priv->l2c_base + 0x38);
++
++	return IRQ_HANDLED;
++}
++
+ static int __init ax45mp_cache_init(void)
+ {
+ 	struct device_node *np;
+ 	struct resource res;
+-	int ret;
++	int ret, irq;
+ 
+ 	np = of_find_matching_node(NULL, ax45mp_cache_ids);
+ 	if (!of_device_is_available(np))
+@@ -196,10 +215,21 @@ static int __init ax45mp_cache_init(void)
+ 	if (!riscv_cbom_block_size)
+ 		return 0;
+ 
++	irq = irq_of_parse_and_map(np, 0);
++	pr_warn("@@@@@@@@@@@@@@@@ irq: %d\n", irq);
++	if (irq < 0) {
++		pr_err("l2_err_int IRQ missing in DT\n");
++		return irq;
++	}
++
+ 	ax45mp_priv.l2c_base = ioremap(res.start, resource_size(&res));
+ 	if (!ax45mp_priv.l2c_base)
+ 		return -ENOMEM;
+ 
++	ret = request_irq(irq, l2c_irq, 0, "l2c-irq", &ax45mp_priv);
++	if (ret)
++		pr_err("cannot setup l2c_irq\n");
++
+ 	ret = ax45mp_get_l2_line_size(np);
+ 	if (ret) {
+ 		iounmap(ax45mp_priv.l2c_base);
+-- 
+2.34.1
+
