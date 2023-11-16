@@ -27,7 +27,7 @@ SRC_URI:append:tinker-v-rzfive = " \
     file://v7-0010-docs-pmu-Add-Andes-PMU-node-example.patch \
     file://v7-0011-DROP-disable-SEMIHOSTING.patch \
     file://v7-0012-DROP-Print-entries-at-boot-time.patch \
-    file://0001-lib-ipi-Rearrange-Andes-PLICSW-to-single-bit-per-har.patch \
+    file://0001-lib-ipi-Adjust-Andes-PLICSW-to-single-bit-per-hart-s.patch \
 "
 
 DEPENDS:append:jh7110 = " u-boot-tools-native dtc-native"
