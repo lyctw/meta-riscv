@@ -1,0 +1,25 @@
+From 1b0bdba1c6ceb52c483b77edccd10dee4a6ee4e4 Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Fri, 17 Nov 2023 16:20:37 +0800
+Subject: [PATCH] Disable COMPAT
+
+---
+ arch/riscv/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
+index 800d62c50..93ee35753 100644
+--- a/arch/riscv/Kconfig
++++ b/arch/riscv/Kconfig
+@@ -445,7 +445,7 @@ config RISCV_SBI_V01
+ config COMPAT
+ 	bool "Kernel support for 32-bit U-mode"
+ 	depends on 64BIT && MMU
+-	default y
++	default n
+ 	help
+ 	  This option enables support for a 32-bit U-mode running under a 64-bit
+ 	  kernel at S-mode. riscv32-specific components such as system calls,
+-- 
+2.34.1
+

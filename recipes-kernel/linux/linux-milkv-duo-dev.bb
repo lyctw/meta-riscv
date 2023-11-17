@@ -1,4 +1,5 @@
 SUMMARY = "Milk-V Duo dev kernel recipe"
+FILESEXTRAPATHS =. "${FILE_DIRNAME}/linux-milkv-duo-dev:"
 
 inherit kernel
 require recipes-kernel/linux/linux-yocto.inc
@@ -9,6 +10,7 @@ BRANCH ?= "main"
 FORK ?= "xyq1113723547"
 
 SRC_URI = "git://github.com/${FORK}/cvitek-linux-5.10.git;protocol=https;branch=${BRANCH} \
+           file://0001-Disable-COMPAT.patch \
            "
 
 SRCREV ?= "15ea08f842174c4eff8dcc0943de6e70b0b7aa2f"
