@@ -1,13 +1,14 @@
-From 4d6296d4019c448ddcada771e115061acc8ccdfd Mon Sep 17 00:00:00 2001
+From 03d69b1daf3cf4ee2f1b5213728ff58b82a184f0 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 13:57:40 +0800
-Subject: [PATCH v7 03/12] platform: include: andes45: Add PMU related CSR
+Subject: [PATCH v8 06/16] platform: include: andes45: Add PMU related CSR
  defines
 
 This patch adds CSR for Andes PMU extension.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 Upstream-Status: Pending
 ---
  platform/generic/include/andes/andes45.h | 26 ++++++++++++++++++++++++

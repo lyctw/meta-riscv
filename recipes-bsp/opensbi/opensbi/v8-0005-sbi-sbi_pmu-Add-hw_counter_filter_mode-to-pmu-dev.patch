@@ -1,0 +1,112 @@
+From 5b8a8b55d5deea02c7902b5c3787ba3087e2bed5 Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Sun, 3 Sep 2023 13:56:39 +0800
+Subject: [PATCH v8 05/16] sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu
+ device
+
+Add support for custom PMU extensions to set inhibit bits
+on custom CSRs by introducing the PMU device callback
+hw_counter_filter_mode(). This allows the perf tool to
+restrict event counting under a specified privileged
+mode by appending a modifier, e.g. perf record -e event:k
+to count events only happening in kernel mode.
+
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
+Upstream-Status: Pending
+---
+ include/sbi/sbi_pmu.h |  6 +++++
+ lib/sbi/sbi_pmu.c     | 52 ++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 57 insertions(+), 1 deletion(-)
+
+diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
+index 16f6877..d63149c 100644
+--- a/include/sbi/sbi_pmu.h
++++ b/include/sbi/sbi_pmu.h
+@@ -89,6 +89,12 @@ struct sbi_pmu_device {
+ 	 * Custom function returning the machine-specific irq-bit.
+ 	 */
+ 	int (*hw_counter_irq_bit)(void);
++
++	/**
++	 * Custom function to inhibit counting of events while in
++	 * specified mode.
++	 */
++	void (*hw_counter_filter_mode)(unsigned long flags, int counter_index);
+ };
+ 
+ /** Get the PMU platform device */
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index 77763ae..b204e32 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -579,7 +579,10 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+ 		pmu_dev->hw_counter_disable_irq(ctr_idx);
+ 
+ 	/* Update the inhibit flags based on inhibit flags received from supervisor */
+-	pmu_update_inhibit_flags(flags, &mhpmevent_val);
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF))
++		pmu_update_inhibit_flags(flags, &mhpmevent_val);
++	if (pmu_dev && pmu_dev->hw_counter_filter_mode)
++		pmu_dev->hw_counter_filter_mode(flags, ctr_idx);
+ 
+ #if __riscv_xlen == 32
+ 	csr_write_num(CSR_MHPMEVENT3 + ctr_idx - 3, mhpmevent_val & 0xFFFFFFFF);
+@@ -593,7 +596,54 @@ static int pmu_update_hw_mhpmevent(struct sbi_pmu_hw_event *hw_evt, int ctr_idx,
+ 	return 0;
+ }
+ 
++<<<<<<< HEAD
+ static int pmu_ctr_find_fixed_fw(unsigned long evt_idx_code)
++=======
++static int pmu_fixed_ctr_update_inhibit_bits(int fixed_ctr, unsigned long flags)
++{
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++	uint64_t cfg_val = 0, cfg_csr_no;
++#if __riscv_xlen == 32
++	uint64_t cfgh_csr_no;
++#endif
++	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF) &&
++		!sbi_hart_has_extension(scratch, SBI_HART_EXT_XANDESPMU))
++		return fixed_ctr;
++
++	switch (fixed_ctr) {
++	case 0:
++		cfg_csr_no = CSR_MCYCLECFG;
++#if __riscv_xlen == 32
++		cfgh_csr_no = CSR_MCYCLECFGH;
++#endif
++		break;
++	case 2:
++		cfg_csr_no = CSR_MINSTRETCFG;
++#if __riscv_xlen == 32
++		cfgh_csr_no = CSR_MINSTRETCFGH;
++#endif
++		break;
++	default:
++		return SBI_EFAIL;
++	}
++
++	cfg_val |= MHPMEVENT_MINH;
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF)) {
++		pmu_update_inhibit_flags(flags, &cfg_val);
++#if __riscv_xlen == 32
++		csr_write_num(cfg_csr_no, cfg_val & 0xFFFFFFFF);
++		csr_write_num(cfgh_csr_no, cfg_val >> BITS_PER_LONG);
++#else
++		csr_write_num(cfg_csr_no, cfg_val);
++#endif
++	}
++	if (pmu_dev && pmu_dev->hw_counter_filter_mode)
++		pmu_dev->hw_counter_filter_mode(flags, fixed_ctr);
++	return fixed_ctr;
++}
++
++static int pmu_ctr_find_fixed_hw(unsigned long evt_idx_code)
++>>>>>>> bd0a4cb (sbi: sbi_pmu: Add hw_counter_filter_mode() to pmu device)
+ {
+ 	/* Non-programmables counters are enabled always. No need to do lookup */
+ 	if (evt_idx_code == SBI_PMU_HW_CPU_CYCLES)
+-- 
+2.34.1
+

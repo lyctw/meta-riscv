@@ -1,58 +1,63 @@
-From 8991d41dd60960e6e2bec21da10a722c96a0df51 Mon Sep 17 00:00:00 2001
+From 96c67de6cad42162698380b9275c5af30cbdc69c Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 14:00:03 +0800
-Subject: [PATCH v7 04/12] platform: andes: Add Andes custom PMU support
+Subject: [PATCH v8 08/16] platform: andes: Add Andes custom PMU support
 
 Before the ratification of Sscofpmf, the Andes PMU extension
 was designed to support the sampling and filtering with hardware
-performance counters, it works with the current SBI PMU extension
-and Linux perf driver.
+performance counters (zihpm), it works with the current SBI PMU
+extension and Linux SBI PMU driver.
 
-This patch implements the PMU device callbacks that update the
-corresponding bits on custom CSRs.
+We implement 1) the PMU device callbacks that update the
+corresponding bits on custom CSRs, 2) extentions_init() to detect
+the hardware support of Andes PMU and initialize the per-hart
+PMU related CSR, and 3) pmu_init() to register PMU device and
+populate event mappings.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 Upstream-Status: Pending
 ---
- platform/generic/andes/Kconfig             |  4 ++
- platform/generic/andes/andes_pmu.c         | 81 ++++++++++++++++++++++
+ platform/generic/andes/Kconfig             |  8 ++
+ platform/generic/andes/andes_pmu.c         | 99 ++++++++++++++++++++++
  platform/generic/andes/objects.mk          |  1 +
- platform/generic/include/andes/andes_pmu.h |  8 +++
- 4 files changed, 94 insertions(+)
+ platform/generic/include/andes/andes_pmu.h | 29 +++++++
+ 4 files changed, 137 insertions(+)
  create mode 100644 platform/generic/andes/andes_pmu.c
  create mode 100644 platform/generic/include/andes/andes_pmu.h
 
 diff --git a/platform/generic/andes/Kconfig b/platform/generic/andes/Kconfig
-index a91fb9c..555e4fe 100644
+index a91fb9c..5b2ed91 100644
 --- a/platform/generic/andes/Kconfig
 +++ b/platform/generic/andes/Kconfig
-@@ -7,3 +7,7 @@ config ANDES45_PMA
+@@ -7,3 +7,11 @@ config ANDES45_PMA
  config ANDES_SBI
  	bool "Andes SBI support"
  	default n
 +
 +config ANDES_PMU
-+	bool "Andes custom PMU extension support"
++	bool "Andes PMU extension (xandespmu) support"
 +	default n
++	help
++	  Andes PMU extension supports the event counter overflow
++	  interrupt and mode filtering, similar to the standard
++	  Sscofpmf and Smcntrpmf.
 diff --git a/platform/generic/andes/andes_pmu.c b/platform/generic/andes/andes_pmu.c
 new file mode 100644
-index 0000000..0f6ecc0
+index 0000000..9f1e796
 --- /dev/null
 +++ b/platform/generic/andes/andes_pmu.c
-@@ -0,0 +1,81 @@
+@@ -0,0 +1,99 @@
 +// SPDX-License-Identifier: BSD-2-Clause
 +/*
 + * Copyright (C) 2023 Andes Technology Corporation
 + */
 +#include <andes/andes45.h>
++#include <andes/andes_hpm.h>
 +#include <andes/andes_pmu.h>
-+#include <sbi/riscv_asm.h>
 +#include <sbi/sbi_bitops.h>
 +#include <sbi/sbi_error.h>
-+#include <sbi/sbi_hart.h>
 +#include <sbi/sbi_pmu.h>
-+#include <sbi/sbi_scratch.h>
 +
 +static void andes_hw_counter_enable_irq(uint32_t ctr_idx)
 +{
@@ -99,28 +104,48 @@ index 0000000..0f6ecc0
 +	.hw_counter_filter_mode = andes_hw_counter_filter_mode
 +};
 +
-+int andes_pmu_init(void)
++int andes_pmu_extensions_init(const struct fdt_match *match,
++			      struct sbi_hart_features *hfeatures)
 +{
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++
 +	if (!has_andes_pmu())
-+		return SBI_ENOTSUPP;
++		return 0;
 +
 +	/*
-+	 * It is not reasonable for an Andes CPU to support
-+	 * both Andes PMU and standard Sscofpmf, as they
-+	 * serve the same purpose.
++	 * Don't expect both Andes PMU and standard Sscofpmf/Smcntrpmf,
++	 * are supported as they serve the same purpose.
 +	 */
-+	if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
-+				   SBI_HART_EXT_SSCOFPMF))
-+		sbi_hart_hang();
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF) ||
++		sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF))
++		return SBI_EINVAL;
++	sbi_hart_update_extension(scratch, SBI_HART_EXT_XANDESPMU, true);
 +
-+	/* Inhibit HPM counter in M-mode */
++	/* Inhibit all HPM counters in M-mode */
 +	csr_write(CSR_MCOUNTERMASK_M, 0xfffffffd);
-+	/* Delegate S-mode local interrupt to S-mode */
++	/* Delegate counter overflow interrupt to S-mode */
 +	csr_write(CSR_MSLIDELEG, MIP_PMOVI);
 +
-+	sbi_pmu_set_device(&andes_pmu);
-+
 +	return 0;
++}
++
++int andes_pmu_init(const struct fdt_match *match)
++{
++	int rc;
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_XANDESPMU))
++		sbi_pmu_set_device(&andes_pmu);
++
++	rc = fdt_pmu_setup(fdt_get_address());
++	/*
++	 * Populate default mappings if device-tree doesn't
++	 * provide a valid pmu node.
++	 */
++	if (rc == SBI_ENOENT)
++		return andes_pmu_setup();
++
++	return rc;
 +}
 diff --git a/platform/generic/andes/objects.mk b/platform/generic/andes/objects.mk
 index e8f86ea..6a8c66c 100644
@@ -133,16 +158,37 @@ index e8f86ea..6a8c66c 100644
 +platform-objs-$(CONFIG_ANDES_PMU) += andes/andes_pmu.o
 diff --git a/platform/generic/include/andes/andes_pmu.h b/platform/generic/include/andes/andes_pmu.h
 new file mode 100644
-index 0000000..70b3a12
+index 0000000..552fa0c
 --- /dev/null
 +++ b/platform/generic/include/andes/andes_pmu.h
-@@ -0,0 +1,8 @@
+@@ -0,0 +1,29 @@
 +// SPDX-License-Identifier: BSD-2-Clause
 +
 +#ifndef _RISCV_ANDES_PMU_H
 +#define _RISCV_ANDES_PMU_H
 +
-+int andes_pmu_init(void);
++#include <sbi/sbi_hart.h>
++#include <sbi_utils/fdt/fdt_pmu.h>
++
++#ifdef CONFIG_ANDES_PMU
++
++int andes_pmu_init(const struct fdt_match *match);
++int andes_pmu_extensions_init(const struct fdt_match *match,
++			      struct sbi_hart_features *hfeatures);
++
++#else
++
++int andes_pmu_init(const struct fdt_match *match)
++{
++	return 0;
++}
++int andes_pmu_extensions_init(const struct fdt_match *match,
++			      struct sbi_hart_features *hfeatures)
++{
++	return 0;
++}
++
++#endif /* CONFIG_ANDES_PMU */
 +
 +#endif /* _RISCV_ANDES_PMU_H */
 -- 

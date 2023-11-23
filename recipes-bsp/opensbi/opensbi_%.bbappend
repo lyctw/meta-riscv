@@ -15,19 +15,23 @@ SRC_URI:append:tinker-v-rzfive = " \
     file://0001-lib-serial-Add-compatible-string-for-renesas_scif.patch \
     file://0002-platform-rzfive-Add-platform-compatible-string.patch \
     file://0003-rzfive-enable-caches.patch \
-    file://v7-0001-sbi-sbi_pmu-Improve-sbi_pmu_init-error-handling.patch \
-    file://v7-0002-sbi-sbi_pmu-Add-hw_counter_filter_mode-to-pmu-dev.patch \
-    file://v7-0003-platform-include-andes45-Add-PMU-related-CSR-defi.patch \
-    file://v7-0004-platform-andes-Add-Andes-custom-PMU-support.patch \
-    file://v7-0005-platform-andes-Enable-Andes-PMU-for-AE350.patch \
-    file://v7-0006-platform-rzfive-Enable-Andes-PMU-for-RZ-Five.patch \
-    file://v7-0007-lib-utils-fdt_fixup-Add-fdt_add_pmu_mappings-help.patch \
-    file://v7-0008-platform-andes-Factor-out-is_andes-helper.patch \
-    file://v7-0009-platform-andes-Implement-andes_fdt_add_pmu_mappin.patch \
-    file://v7-0010-docs-pmu-Add-Andes-PMU-node-example.patch \
-    file://v7-0011-DROP-disable-SEMIHOSTING.patch \
-    file://v7-0012-DROP-Print-entries-at-boot-time.patch \
-    file://0001-lib-ipi-Adjust-Andes-PLICSW-to-single-bit-per-hart-s.patch \
+    file://v8-0001-DROP-disable-SEMIHOSTING.patch \
+    file://v8-0002-lib-ipi-Adjust-Andes-PLICSW-to-single-bit-per-har.patch \
+    file://v8-0003-sbi-sbi_pmu-Improve-sbi_pmu_init-error-handling.patch \
+    file://v8-0004-lib-sbi-Add-Xandespmu-in-hart-extensions.patch \
+    file://v8-0005-sbi-sbi_pmu-Add-hw_counter_filter_mode-to-pmu-dev.patch \
+    file://v8-0006-platform-include-andes45-Add-PMU-related-CSR-defi.patch \
+    file://v8-0007-platform-generic-Introduce-pmu_init-platform-over.patch \
+    file://v8-0008-platform-andes-Add-Andes-custom-PMU-support.patch \
+    file://v8-0009-platform-andes-Enable-Andes-PMU-for-AE350.patch \
+    file://v8-0010-platform-rzfive-Enable-Andes-PMU-for-RZ-Five.patch \
+    file://v8-0011-lib-utils-fdt_fixup-Allow-preserving-PMU-properti.patch \
+    file://v8-0012-platform-andes-Factor-out-is_andes-helper.patch \
+    file://v8-0013-lib-utils-fdt_pmu-Make-the-fdt_pmu_evt_select-tab.patch \
+    file://v8-0014-lib-utils-fdt_pmu-Do-not-iterate-over-the-fdt_pmu.patch \
+    file://v8-0015-platform-andes-Add-Andes-default-PMU-mapping-supp.patch \
+    file://v8-0016-docs-pmu-Add-Andes-PMU-node-example.patch \
+    file://v8-0017-DROP-temp-fix.patch \
 "
 
 DEPENDS:append:jh7110 = " u-boot-tools-native dtc-native"

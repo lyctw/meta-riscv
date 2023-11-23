@@ -1,19 +1,19 @@
-From e1cb6e95ca3c411d96bc3b1ab6368f7c2e0dce8d Mon Sep 17 00:00:00 2001
+From 983981de7f6d9450a981f698cbd8fbe96e75bb4b Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 14:01:49 +0800
-Subject: [PATCH v7 06/12] platform: rzfive: Enable Andes PMU for RZ/Five
+Subject: [PATCH v8 10/16] platform: rzfive: Enable Andes PMU for RZ/Five
 
 Enable Andes PMU extension support for RZ/Five.
-This patch also staticize renesas_rzfive_early_init() as
+We also staticize renesas_rzfive_early_init() as
 it is not used outside of this unit.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 Upstream-Status: Pending
 ---
- platform/generic/Kconfig                 |  1 +
- platform/generic/renesas/rzfive/rzfive.c | 16 +++++++++++++++-
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ platform/generic/Kconfig                 | 1 +
+ platform/generic/renesas/rzfive/rzfive.c | 5 ++++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
 index 16c28fe..e6e7e94 100644
@@ -28,10 +28,10 @@ index 16c28fe..e6e7e94 100644
  
  config PLATFORM_SIFIVE_FU540
 diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
-index 68a69fe..51420c1 100644
+index 68a69fe..2f42437 100644
 --- a/platform/generic/renesas/rzfive/rzfive.c
 +++ b/platform/generic/renesas/rzfive/rzfive.c
-@@ -5,11 +5,13 @@
+@@ -5,6 +5,7 @@
   */
  
  #include <andes/andes45_pma.h>
@@ -39,13 +39,7 @@ index 68a69fe..51420c1 100644
  #include <andes/andes_sbi.h>
  #include <andes/andes45.h>
  #include <sbi/riscv_asm.h>
- #include <platform_override.h>
- #include <sbi/sbi_domain.h>
-+#include <sbi/sbi_error.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- 
- static const struct andes45_pma_region renesas_rzfive_pma_regions[] = {
-@@ -38,7 +40,7 @@ static void enable_caches(void)
+@@ -38,7 +39,7 @@ static void enable_caches(void)
  	*(unsigned long *)L2C_CTR = 0x979;
  }
  
@@ -54,29 +48,12 @@ index 68a69fe..51420c1 100644
  {
  	enable_caches();
  	/*
-@@ -57,6 +59,17 @@ int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
- 					    SBI_DOMAIN_MEMREGION_M_RWX);
- }
- 
-+static int renesas_rzfive_extensions_init(const struct fdt_match *match,
-+			  struct sbi_hart_features *hfeatures)
-+{
-+	int rc;
-+	rc = andes_pmu_init();
-+	if (rc && rc != SBI_ENOTSUPP)
-+		return rc;
-+
-+	return 0;
-+}
-+
- static const struct fdt_match renesas_rzfive_match[] = {
- 	{ .compatible = "renesas,r9a07g043f01" },
- 	{ .compatible = "renesas,rzf" },
-@@ -68,4 +81,5 @@ const struct platform_override renesas_rzfive = {
+@@ -68,4 +69,6 @@ const struct platform_override renesas_rzfive = {
  	.early_init = renesas_rzfive_early_init,
  	.final_init = renesas_rzfive_final_init,
  	.vendor_ext_provider = andes_sbi_vendor_ext_provider,
-+	.extensions_init = renesas_rzfive_extensions_init,
++	.extensions_init = andes_pmu_extensions_init,
++	.pmu_init = andes_pmu_init,
  };
 -- 
 2.34.1

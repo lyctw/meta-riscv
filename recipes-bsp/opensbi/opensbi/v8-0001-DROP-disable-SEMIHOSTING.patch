@@ -1,9 +1,11 @@
-From d91e3531c0dc64d002d947a7946851560f303c92 Mon Sep 17 00:00:00 2001
+From 66c5defe31fb2dba1034edc88fbe658a4d54afeb Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Mon, 18 Sep 2023 16:50:09 +0800
-Subject: [PATCH v7 11/12] !!!DROP!!! disable SEMIHOSTING
+Subject: [PATCH v8 01/16] !!!DROP!!! disable SEMIHOSTING
 
 Upstream-Status: Pending
+
+%% original patch: v7-0011-DROP-disable-SEMIHOSTING.patch
 ---
  platform/generic/configs/defconfig | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)

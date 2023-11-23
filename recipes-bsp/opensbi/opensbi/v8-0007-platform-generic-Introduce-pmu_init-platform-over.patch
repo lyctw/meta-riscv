@@ -1,0 +1,45 @@
+From bbe01c3c1137f3236d60cc311a1bb0bf7204ca57 Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Tue, 21 Nov 2023 16:43:37 +0800
+Subject: [PATCH v8 07/16] platform: generic: Introduce pmu_init() platform
+ override
+
+Add pmu_init() platform override which will be used to register
+PMU device and populate event mappings.
+
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Upstream-Status: Pending
+---
+ platform/generic/include/platform_override.h | 1 +
+ platform/generic/platform.c                  | 3 +++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
+index 0d9e5ee..b1a3ebd 100644
+--- a/platform/generic/include/platform_override.h
++++ b/platform/generic/include/platform_override.h
+@@ -26,6 +26,7 @@ struct platform_override {
+ 	int (*fdt_fixup)(void *fdt, const struct fdt_match *match);
+ 	int (*extensions_init)(const struct fdt_match *match,
+ 			       struct sbi_hart_features *hfeatures);
++	int (*pmu_init)(const struct fdt_match *match);
+ 	void (*fw_init)(void *fdt, const struct fdt_match *match);
+ 	int (*vendor_ext_provider)(long funcid,
+ 				   const struct sbi_trap_regs *regs,
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 4b2c3cc..fc1d685 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -251,6 +251,9 @@ static int generic_pmu_init(void)
+ {
+ 	int rc;
+ 
++	if (generic_plat && generic_plat->pmu_init)
++		return generic_plat->pmu_init(generic_plat_match);
++
+ 	rc = fdt_pmu_setup(fdt_get_address());
+ 	if (rc && rc != SBI_ENOENT)
+ 		return rc;
+-- 
+2.34.1
+

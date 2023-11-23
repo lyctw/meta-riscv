@@ -1,7 +1,7 @@
-From 7a10bc56aa9f6c0f98294328de309e6bf53eaf05 Mon Sep 17 00:00:00 2001
+From b142dd129e23fb60d254ff3fbbb72a8c7c0c1d9c Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 14:01:22 +0800
-Subject: [PATCH v7 05/12] platform: andes: Enable Andes PMU for AE350
+Subject: [PATCH v8 09/16] platform: andes: Enable Andes PMU for AE350
 
 Enable Andes PMU extension support for AE350 platforms.
 
@@ -9,9 +9,9 @@ Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 Upstream-Status: Pending
 ---
- platform/generic/Kconfig       |  1 +
- platform/generic/andes/ae350.c | 13 +++++++++++++
- 2 files changed, 14 insertions(+)
+ platform/generic/Kconfig       | 1 +
+ platform/generic/andes/ae350.c | 3 +++
+ 2 files changed, 4 insertions(+)
 
 diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
 index 72768ed..16c28fe 100644
@@ -26,7 +26,7 @@ index 72768ed..16c28fe 100644
  
  config PLATFORM_RENESAS_RZFIVE
 diff --git a/platform/generic/andes/ae350.c b/platform/generic/andes/ae350.c
-index 01bd02d..bbc257b 100644
+index 01bd02d..344456b 100644
 --- a/platform/generic/andes/ae350.c
 +++ b/platform/generic/andes/ae350.c
 @@ -8,6 +8,7 @@
@@ -37,29 +37,12 @@ index 01bd02d..bbc257b 100644
  #include <sbi_utils/fdt/fdt_helper.h>
  #include <sbi_utils/fdt/fdt_fixup.h>
  #include <sbi_utils/sys/atcsmu.h>
-@@ -110,6 +111,17 @@ static int ae350_final_init(bool cold_boot, const struct fdt_match *match)
- 	return 0;
- }
- 
-+static int ae350_extensions_init(const struct fdt_match *match,
-+			  struct sbi_hart_features *hfeatures)
-+{
-+	int rc;
-+	rc = andes_pmu_init();
-+	if (rc && rc != SBI_ENOTSUPP)
-+		return rc;
-+
-+	return 0;
-+}
-+
- static const struct fdt_match andes_ae350_match[] = {
- 	{ .compatible = "andestech,ae350" },
- 	{ },
-@@ -118,4 +130,5 @@ static const struct fdt_match andes_ae350_match[] = {
+@@ -118,4 +119,6 @@ static const struct fdt_match andes_ae350_match[] = {
  const struct platform_override andes_ae350 = {
  	.match_table = andes_ae350_match,
  	.final_init  = ae350_final_init,
-+	.extensions_init = ae350_extensions_init,
++	.extensions_init = andes_pmu_extensions_init,
++	.pmu_init = andes_pmu_init,
  };
 -- 
 2.34.1

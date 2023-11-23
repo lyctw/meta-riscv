@@ -1,0 +1,56 @@
+From 02ab92af3a1d4764da1abba0f5d8ef6fdfa94542 Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Tue, 21 Nov 2023 16:49:05 +0800
+Subject: [PATCH v8 04/16] lib: sbi: Add Xandespmu in hart extensions
+
+When SBI PMU updates inhibit bits on mcyclecfg and
+minstretcfg, it will check if Smcntrpmf extension
+is supported, we need to check Xandespmu similarly
+in the pmu_fixed_ctr_update_inhibit_bits() so add
+the custom extension to hart extension list.
+
+Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Upstream-Status: Pending
+---
+ include/sbi/sbi_hart.h | 10 ++++++++++
+ lib/sbi/sbi_hart.c     |  3 +++
+ 2 files changed, 13 insertions(+)
+
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index 95b40e7..3c42e00 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -36,6 +36,16 @@ enum sbi_hart_extensions {
+ 	SBI_HART_EXT_SMSTATEEN,
+ 	/** HART has Sstc extension */
+ 	SBI_HART_EXT_SSTC,
++	/** HART has Zicntr extension (i.e. HW cycle, time & instret CSRs) */
++	SBI_HART_EXT_ZICNTR,
++	/** HART has Zihpm extension */
++	SBI_HART_EXT_ZIHPM,
++	/** HART has Zkr extension */
++	SBI_HART_EXT_ZKR,
++	/** Hart has Smcntrpmf extension */
++	SBI_HART_EXT_SMCNTRPMF,
++	/** Hart has Xandespmu extension */
++	SBI_HART_EXT_XANDESPMU,
+ 
+ 	/** Maximum index of Hart extension */
+ 	SBI_HART_EXT_MAX,
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 6e52cbd..0a71ce6 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -453,6 +453,9 @@ static inline char *sbi_hart_extension_id2string(int ext)
+ 	case SBI_HART_EXT_SMSTATEEN:
+ 		estr = "smstateen";
+ 		break;
++	case SBI_HART_EXT_XANDESPMU:
++		estr = "xandespmu";
++		break;
+ 	default:
+ 		break;
+ 	}
+-- 
+2.34.1
+

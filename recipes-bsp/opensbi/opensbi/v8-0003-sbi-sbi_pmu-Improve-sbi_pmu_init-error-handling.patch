@@ -1,7 +1,7 @@
-From a300c6dad6223ab315f874f55cf5deed901fcca6 Mon Sep 17 00:00:00 2001
+From d4b73168242b05f71c373d402e1c998d0484f00c Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sat, 23 Sep 2023 19:36:37 +0800
-Subject: [PATCH v7 01/12] sbi: sbi_pmu: Improve sbi_pmu_init() error handling
+Subject: [PATCH v8 03/16] sbi: sbi_pmu: Improve sbi_pmu_init() error handling
 
 This patch makes the following changes:
 
@@ -9,12 +9,13 @@ This patch makes the following changes:
   failure, let sbi_pmu_init() to hang by propagating the error
   code.
 
-- In order to distinguish the SBI_EFAIL returned by
+- In order to distinguish the SBI_EFAIL error returned by
   sbi_pmu_add_*_counter_map(), return SBI_ENOENT to indicate
   that fdt_pmu_setup() failed to locate "riscv,pmu" node, and
   generic_pmu_init() ignores such case.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 Upstream-Status: Pending
 ---
  lib/sbi/sbi_pmu.c           | 5 ++++-

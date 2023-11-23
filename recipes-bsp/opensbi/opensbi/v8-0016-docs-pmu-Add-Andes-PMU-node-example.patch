@@ -1,7 +1,7 @@
-From cb531fb7980ff0e85e073f67cb6c12c0986606e1 Mon Sep 17 00:00:00 2001
+From 3368c860bfab0b6b092ba5cddf8183e759a040fb Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
 Date: Sun, 3 Sep 2023 14:08:01 +0800
-Subject: [PATCH v7 10/12] docs: pmu: Add Andes PMU node example
+Subject: [PATCH v8 16/16] docs: pmu: Add Andes PMU node example
 
 Add PMU node example for event index to counter index mapping
 and selector value translation of Andes' CPUs.
@@ -12,6 +12,7 @@ all of the events for each hart.
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
 Reviewed-by: Locus Wei-Han Chen <locus84@andestech.com>
 Reviewed-by: Leo Yu-Chi Liang <ycliang@andestech.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 Upstream-Status: Pending
 ---
  docs/pmu_support.md | 82 +++++++++++++++++++++++++++++++++++++++++++++

@@ -1,16 +1,17 @@
-From 7e197e140c35d90b38ad2435954450e64e834352 Mon Sep 17 00:00:00 2001
+From ad43e889e489bb9cec8838e8f2d70047e07cdcaa Mon Sep 17 00:00:00 2001
 From: Leo Yu-Chi Liang <ycliang@andestech.com>
 Date: Wed, 18 Oct 2023 16:27:02 +0800
-Subject: [PATCH] lib: ipi: Adjust Andes PLICSW to single-bit-per-hart scheme
+Subject: [PATCH v8 02/16] lib: ipi: Adjust Andes PLICSW to single-bit-per-hart
+ scheme
 
-The old scheme is not able to send hart0 self-IPI as the
+The old scheme doesn't allow sending hart0 self-IPI as the
 corresponding bit on pending register is hardwired to 0, this
-will lead to unhandle inter-processor interrupts on single-core
-SMP systems.
+could lead to unhandle IPIs on SMP systems, esp. on single-core.
 
-Instead of reserving source hart infomation, we assign bit(x + 1)
-to enable/send IPI for hartx, thus extend the bootable CPU number
-(the limitation of old scheme is 8-core).
+Futhermore, the limitation of old scheme is 8-core, instead of
+reserving source hart infomation, we assign bit (x + 1) as the
+enable and pending bit of hartx, this also expands the bootable
+hart number.
 
 The following diagram shows the enable bits of the new scheme
 on 32-core Andes platform.
@@ -37,6 +38,8 @@ Pending hart ID:             0   1   2   3 ... 30  31
 To send IPI to hart0, for example, another hart (including hart0
 itself) will set bit 1 of first word on the pending register.
 
+We also fix indentation in andes_plicsw.h along with this patch.
+
 Fixes: ce7c490719ed ("lib: utils/ipi: Add Andes fdt ipi driver support")
 Signed-off-by: Leo Yu-Chi Liang <ycliang@andestech.com>
 Reviewed-by: Yu Chien Peter Lin <peterlin@andestech.com>
@@ -45,8 +48,8 @@ Reported-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 Upstream-Status: Pending
 ---
  include/sbi_utils/ipi/andes_plicsw.h |  23 +++---
- lib/utils/ipi/andes_plicsw.c         | 101 ++++++++++-----------------
- 2 files changed, 46 insertions(+), 78 deletions(-)
+ lib/utils/ipi/andes_plicsw.c         | 102 ++++++++++-----------------
+ 2 files changed, 46 insertions(+), 79 deletions(-)
 
 diff --git a/include/sbi_utils/ipi/andes_plicsw.h b/include/sbi_utils/ipi/andes_plicsw.h
 index e93cda0..0d18444 100644
@@ -92,10 +95,10 @@ index e93cda0..0d18444 100644
  
  int plicsw_warm_ipi_init(void);
 diff --git a/lib/utils/ipi/andes_plicsw.c b/lib/utils/ipi/andes_plicsw.c
-index db25ae2..bc9dfcb 100644
+index db25ae2..8faa088 100644
 --- a/lib/utils/ipi/andes_plicsw.c
 +++ b/lib/utils/ipi/andes_plicsw.c
-@@ -18,73 +18,44 @@
+@@ -18,73 +18,43 @@
  
  struct plicsw_data plicsw;
  
@@ -130,8 +133,7 @@ index db25ae2..bc9dfcb 100644
  	/*
 -	 * The pending array registers are w1s type.
 -	 * IPI pending array mapping as following:
-+	 * The pending registers are w1s type.
- 	 *
+-	 *
 -	 * Pending array start address: base + 0x1000
 -	 * ---------------------------------
 -	 * | hart3 | hart2 | hart1 | hart0 |
@@ -145,7 +147,7 @@ index db25ae2..bc9dfcb 100644
 -	 * ------------------------------------------
 -	 * The bitY of hartX region indicates that hartX sends an
 -	 * IPI to hartY.
-+	 * We allocate a single bit for each hart.
++	 * We assign a single bit for each hart.
 +	 * Bit 0 is hardwired to 0, thus unavailable.
 +	 * Bit(X+1) indicates that IPI is sent to hartX.
  	 */
@@ -159,7 +161,8 @@ index db25ae2..bc9dfcb 100644
 +	pending_reg  = plicsw.addr + PLICSW_PENDING_BASE + word_index * 4;
  
 -	writel(val, (void *)plicsw.addr + PLICSW_PENDING_BASE + word_index * 4);
-+	writel(BIT(pending_bit), (void *)pending_reg);
++	/* Set target hart's mip.MSIP */
++	writel_relaxed(BIT(pending_bit), (void *)pending_reg);
  }
  
 -static void plicsw_ipi_send(u32 target_hart)
@@ -191,7 +194,7 @@ index db25ae2..bc9dfcb 100644
  }
  
  static struct sbi_ipi_device plicsw_ipi = {
-@@ -106,22 +77,26 @@ int plicsw_warm_ipi_init(void)
+@@ -106,22 +76,26 @@ int plicsw_warm_ipi_init(void)
  int plicsw_cold_ipi_init(struct plicsw_data *plicsw)
  {
  	int rc;
@@ -225,7 +228,7 @@ index db25ae2..bc9dfcb 100644
 +		word_index   = interrupt_id / 32;
 +		enable_bit   = interrupt_id % 32;
 +		enable_reg   = plicsw->addr + PLICSW_ENABLE_BASE +
-+			     PLICSW_ENABLE_STRIDE * i + 4 * word_index;
++			       PLICSW_ENABLE_STRIDE * i + 4 * word_index;
 +		writel(BIT(enable_bit), (void *)enable_reg);
  	}
  
