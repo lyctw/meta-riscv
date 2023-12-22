@@ -6,7 +6,7 @@ distro: poky
 machine: tinker-v-rzfive
 
 target:
-  - core-image-minimal
+  - core-image-x11
 
 repos:
   meta-riscv:
