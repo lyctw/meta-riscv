@@ -1,0 +1,28 @@
+From 88813ee971eed591e30a8b7c755da511d9a52e4d Mon Sep 17 00:00:00 2001
+From: Yu Chien Peter Lin <peterlin@andestech.com>
+Date: Fri, 15 Dec 2023 17:23:26 +0800
+Subject: [PATCH] fix is_andes macro
+
+Upstream-Status: Pending
+
+---
+ platform/generic/include/andes/andes45.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/platform/generic/include/andes/andes45.h b/platform/generic/include/andes/andes45.h
+index 01f63d4..e777692 100644
+--- a/platform/generic/include/andes/andes45.h
++++ b/platform/generic/include/andes/andes45.h
+@@ -43,6 +43,9 @@
+ 
+ #ifndef __ASSEMBLER__
+ 
++#include <sbi/riscv_encoding.h>
++#include <sbi/riscv_asm.h>
++
+ #define is_andes(series)				\
+ ({							\
+ 	char value = csr_read(CSR_MARCHID) & 0xff;	\
+-- 
+2.34.1
+

@@ -1,31 +1,30 @@
-From d4fc06c348fd35ec716f802f6c86afab01b8ee70 Mon Sep 17 00:00:00 2001
+From 78077d30df39610a14086f707d02eaa3f0b6a003 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Tue, 21 Nov 2023 18:42:01 +0800
-Subject: [PATCH v8 15/16] platform: andes: Add Andes default PMU mapping
- support
+Date: Thu, 30 Nov 2023 20:42:12 +0800
+Subject: [PATCH] platform: andes: Add Andes default PMU mapping support
 
 Provide the andes_pmu_setup() to populate default mappings in
 hw_event_map[] and fdt_pmu_evt_select[] when fdt_pmu_setup()
 cannot find the PMU node.
 
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
+Tested-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 Upstream-Status: Pending
 ---
  include/sbi/sbi_ecall_interface.h          |   5 +
  platform/generic/Kconfig                   |   2 +
  platform/generic/andes/Kconfig             |   7 +
- platform/generic/andes/andes_hpm.c         | 404 +++++++++++++++++++++
+ platform/generic/andes/andes_hpm.c         | 405 +++++++++++++++++++++
  platform/generic/andes/objects.mk          |   1 +
- platform/generic/include/andes/andes_hpm.h |  81 +++++
- 6 files changed, 500 insertions(+)
+ platform/generic/include/andes/andes_hpm.h |  69 ++++
+ 6 files changed, 489 insertions(+)
  create mode 100644 platform/generic/andes/andes_hpm.c
- create mode 100644 platform/generic/include/andes/andes_hpm.h
 
 diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-index 1fe469e..89187e7 100644
+index d8c646d..cd3886c 100644
 --- a/include/sbi/sbi_ecall_interface.h
 +++ b/include/sbi/sbi_ecall_interface.h
-@@ -155,6 +155,11 @@ enum sbi_pmu_hw_cache_op_result_id {
+@@ -156,6 +156,11 @@ enum sbi_pmu_hw_cache_op_result_id {
  	SBI_PMU_HW_CACHE_RESULT_MAX,
  };
  
@@ -38,10 +37,10 @@ index 1fe469e..89187e7 100644
   * Special "firmware" events provided by the OpenSBI, even if the hardware
   * does not support performance events. These events are encoded as a raw
 diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index e6e7e94..803fc4b 100644
+index c9b6011..e652645 100644
 --- a/platform/generic/Kconfig
 +++ b/platform/generic/Kconfig
-@@ -31,6 +31,7 @@ config PLATFORM_ALLWINNER_D1
+@@ -32,6 +32,7 @@ config PLATFORM_ALLWINNER_D1
  config PLATFORM_ANDES_AE350
  	bool "Andes AE350 support"
  	select SYS_ATCSMU
@@ -49,7 +48,7 @@ index e6e7e94..803fc4b 100644
  	select ANDES_PMU
  	default n
  
-@@ -38,6 +39,7 @@ config PLATFORM_RENESAS_RZFIVE
+@@ -39,6 +40,7 @@ config PLATFORM_RENESAS_RZFIVE
  	bool "Renesas RZ/Five support"
  	select ANDES45_PMA
  	select ANDES_SBI
@@ -58,7 +57,7 @@ index e6e7e94..803fc4b 100644
  	default n
  
 diff --git a/platform/generic/andes/Kconfig b/platform/generic/andes/Kconfig
-index 5b2ed91..de0d752 100644
+index 3665b33..eb697a6 100644
 --- a/platform/generic/andes/Kconfig
 +++ b/platform/generic/andes/Kconfig
 @@ -8,6 +8,13 @@ config ANDES_SBI
@@ -73,16 +72,17 @@ index 5b2ed91..de0d752 100644
 +	  when a pmu node is missing.
 +
  config ANDES_PMU
- 	bool "Andes PMU extension (xandespmu) support"
+ 	bool "Andes PMU extension (XAndesPMU) support"
  	default n
 diff --git a/platform/generic/andes/andes_hpm.c b/platform/generic/andes/andes_hpm.c
 new file mode 100644
-index 0000000..c0eefa7
+index 0000000..7fe5ac5
 --- /dev/null
 +++ b/platform/generic/andes/andes_hpm.c
-@@ -0,0 +1,404 @@
+@@ -0,0 +1,405 @@
++// SPDX-License-Identifier: BSD-2-Clause
 +/*
-+ * SPDX-License-Identifier: BSD-2-Clause
++ * andes_hpm.c - Default event mappings and helper routine
 + *
 + * Copyright (c) 2023 Andes Technology Corporation
 + */
@@ -495,24 +495,17 @@ index 6a8c66c..57caaf6 100644
  platform-objs-$(CONFIG_ANDES_PMU) += andes/andes_pmu.o
 +platform-objs-$(CONFIG_ANDES_HPM) += andes/andes_hpm.o
 diff --git a/platform/generic/include/andes/andes_hpm.h b/platform/generic/include/andes/andes_hpm.h
-new file mode 100644
-index 0000000..c32964d
---- /dev/null
+index b4d71b9..0ae391f 100644
+--- a/platform/generic/include/andes/andes_hpm.h
 +++ b/platform/generic/include/andes/andes_hpm.h
-@@ -0,0 +1,81 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2023 Andes Technology Corporation
-+ */
-+
-+#ifndef _ANDES_HPM_H_
-+#define _ANDES_HPM_H_
-+
+@@ -7,6 +7,75 @@
+ #ifndef _ANDES_HPM_H_
+ #define _ANDES_HPM_H_
+ 
 +#define ANDES_MHPM_MAP		0x78
 +#define ANDES_RAW_EVENT_MASK	~0ULL
 +
-+/* Event code for instruction commit events */
++/* Event selector for instruction commit events */
 +#define ANDES_CYCLES				0x10
 +#define ANDES_INSTRET				0x20
 +#define ANDES_INT_LOAD_INST			0x30
@@ -539,7 +532,7 @@ index 0000000..c32964d
 +#define ANDES_INT_MUL_AND_SUB_INST		0x180
 +#define ANDES_RETIRED_OP			0x190
 +
-+/* Event code for memory system events */
++/* Event selector for memory system events */
 +#define ANDES_ILM_ACCESS			0x01
 +#define ANDES_DLM_ACCESS			0x11
 +#define ANDES_ICACHE_ACCESS			0x21
@@ -565,7 +558,7 @@ index 0000000..c32964d
 +#define ANDES_PIPE_STALL_CYCLE_DTLB_MISS	0x161
 +#define ANDES_HW_PREFETCH_BUS_ACCESS		0x171
 +
-+/* Event code for microarchitecture events */
++/* Event selector for microarchitecture events */
 +#define ANDES_MISPREDICT_CONDITION_BR		0x02
 +#define ANDES_MISPREDICT_TAKE_CONDITION_BR	0x12
 +#define ANDES_MISPREDICT_TARGET_RET_INST	0x22
@@ -576,11 +569,11 @@ index 0000000..c32964d
 +
 +#else
 +
-+int andes_pmu_setup(void) { return 0; }
-+
+ static inline int andes_pmu_setup(void) { return 0; }
+ 
 +#endif /* CONFIG_ANDES_HPM */
 +
-+#endif /* _ANDES_HPM_H_ */
+ #endif /* _ANDES_HPM_H_ */
 -- 
 2.34.1
 

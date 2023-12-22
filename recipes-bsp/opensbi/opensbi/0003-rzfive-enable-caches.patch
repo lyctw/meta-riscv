@@ -1,6 +1,6 @@
-From f5ed1e97413dad57db3b45ea2932b0f5b84c36b9 Mon Sep 17 00:00:00 2001
+From 7f8e86a364d7a2b5ec8bbae87b40f4411fe8fac1 Mon Sep 17 00:00:00 2001
 From: Yu Chien Peter Lin <peterlin@andestech.com>
-Date: Mon, 22 May 2023 06:47:39 +0000
+Date: Fri, 15 Dec 2023 17:19:00 +0800
 Subject: [PATCH] rzfive: enable caches
 
 1. The mcache_ctl.CCTL_SUEN should be set so
@@ -27,38 +27,33 @@ posted on ML.
 
 Upstream-Status: Inappropriate [enable feature]
 Signed-off-by: Yu Chien Peter Lin <peterlin@andestech.com>
-
 ---
- platform/generic/renesas/rzfive/rzfive.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ platform/generic/renesas/rzfive/rzfive.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
-index 0ed5028..68a69fe 100644
+index b5b5e65..4c7bfaf 100644
 --- a/platform/generic/renesas/rzfive/rzfive.c
 +++ b/platform/generic/renesas/rzfive/rzfive.c
-@@ -6,6 +6,8 @@
- 
+@@ -7,6 +7,8 @@
  #include <andes/andes45_pma.h>
+ #include <andes/andes_pmu.h>
  #include <andes/andes_sbi.h>
 +#include <andes/andes45.h>
 +#include <sbi/riscv_asm.h>
  #include <platform_override.h>
  #include <sbi/sbi_domain.h>
  #include <sbi_utils/fdt/fdt_helper.h>
-@@ -29,8 +31,16 @@ static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *mat
- 					 array_size(renesas_rzfive_pma_regions));
- }
+@@ -32,6 +34,9 @@ static int renesas_rzfive_final_init(bool cold_boot, const struct fdt_match *mat
  
-+static void enable_caches(void)
-+{
+ static int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
+ {
 +#define L2C_CTR 0x13400008
 +	csr_write(CSR_MCACHE_CTL, 0x183f03ul);
 +	*(unsigned long *)L2C_CTR = 0x979;
-+}
-+
- int renesas_rzfive_early_init(bool cold_boot, const struct fdt_match *match)
- {
-+	enable_caches();
  	/*
  	 * Renesas RZ/Five RISC-V SoC has Instruction local memory and
  	 * Data local memory (ILM & DLM) mapped between region 0x30000
+-- 
+2.34.1
+
