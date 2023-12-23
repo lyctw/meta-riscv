@@ -6,7 +6,7 @@ distro: poky
 machine: tinker-v-rzfive
 
 target:
-  - core-image-x11
+  - core-image-minimal-xfce
 
 repos:
   meta-riscv:
@@ -27,6 +27,20 @@ repos:
       meta-oe:
       meta-networking:
       meta-python:
+      meta-gnome:
+      meta-multimedia:
+      meta-xfce:
+
+  meta-clang:
+    url: https://github.com/kraj/meta-clang.git
+    refspec: ca6c714d4a807f199db009bf4be293640623d7af # mickledore
+
+  meta-browser:
+    url: https://github.com/OSSystems/meta-browser.git
+    refspec: bc8caee97e739c364b58a6d981a0d8ab83f02bfa # master
+    layers:
+      meta-chromium:
+      meta-firefox:
 
 bblayers_conf_header:
   standard: |
@@ -55,6 +69,10 @@ local_conf_header:
     EXTRA_IMAGE_FEATURES += " tools-debug"
     # RPM
     EXTRA_IMAGE_FEATURES += " package-management"
+    # X
+    IMAGE_INSTALL:append = " xfdesktop xeyes xclock"
+    # browser
+    IMAGE_INSTALL:append = " firefox"
   diskmon: |
     BB_DISKMON_DIRS = "\
         STOPTASKS,${TMPDIR},1G,100K \
