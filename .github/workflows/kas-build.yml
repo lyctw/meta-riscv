@@ -1,0 +1,78 @@
+name: kas-build
+
+on:
+  push:
+    branches:
+      - 'ci/*/*'
+  workflow_dispatch:
+    inputs:
+      kas_container_tag:
+        description: "Kas container tag (e.g., 4.3, 4.4)"
+        required: false
+        default: "4.3"
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare hosttools and en_US.UTF-8 locale
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y
+          sudo apt-get install -y locales
+          sudo locale-gen en_US.UTF-8
+          sudo update-locale LANG=en_US.UTF-8
+          echo "LANG=en_US.UTF-8" >> "$GITHUB_ENV"
+          echo "LC_ALL=en_US.UTF-8" >> "$GITHUB_ENV"
+          echo "LANGUAGE=en_US:en" >> "$GITHUB_ENV"
+          locale -a || true
+          locale || true
+          sudo apt-get install -y chrpath diffstat cpio
+      - name: Setup Python venv and install kas
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m venv venv
+          echo "${PWD}/venv/bin" >> "$GITHUB_PATH"
+          . ./venv/bin/activate
+          cat > requirements.txt <<'EOF'
+          attrs==22.2.0
+          distro==1.8.0
+          importlib-metadata==4.8.3
+          jsonschema==3.2.0
+          kconfiglib==14.1.0
+          pyrsistent==0.18.0
+          PyYAML==5.3.1
+          six==1.16.0
+          typing_extensions==4.1.1
+          zipp==3.6.0
+          git+https://github.com/sifive/kas.git@5d28a6b5d098ec41bb583f22a15ced2663f37171#egg=kas
+          EOF
+          pip3 install -r requirements.txt
+          kas --version
+
+      - name: Kas build
+        shell: bash
+        run: |
+          set -euo pipefail
+          . ./venv/bin/activate
+          kas build kas/base-riscv.yml
+
+
+      - name: List generated files
+        run: |
+          set -x
+          if [ -d build/tmp/deploy/images ]; then
+            ls -alh build/tmp/deploy/images || true
+            find build/tmp/deploy/images -maxdepth 2 -type f | sort | head -n 200
+          elif [ -d build/tmp ]; then
+            echo "Listing under build/tmp"
+            find build/tmp -maxdepth 3 -type f | sort | head -n 300
+          else
+            echo "No build/tmp directory found"
+          fi
